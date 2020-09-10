@@ -6,21 +6,24 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public class WifiDevice {
 
-    String name, address;
+    String name;
+
+    @Column(name = "ip")
+    String ip;
 
     @Column(name = "is_on")
     Boolean on = false;
 
     public WifiDevice(){}
 
-    public WifiDevice(String name, String address){
+    public WifiDevice(String name, String ip){
         this.name = name;
-        this.address = address;
+        this.ip = ip;
     }
 
-    public WifiDevice(String name, String address, Boolean on){
+    public WifiDevice(String name, String ip, Boolean on){
         this.name = name;
-        this.address = address;
+        this.ip = ip;
         this.on = on;
     }
 
@@ -28,12 +31,12 @@ public class WifiDevice {
         on = getOn() ? false : true;
     }
 
-    public String getAddress() {
-        return address;
+    public String getIp() {
+        return ip;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public String getName() {

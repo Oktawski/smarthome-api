@@ -4,6 +4,7 @@ import com.oktawski.iotserver.superclasses.IService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,17 @@ public class LightService implements IService<Light> {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    public ResponseEntity<Light> getByIp(String ip){
+        Light light = repository.findLightByIp(ip);
+        return new ResponseEntity<>(light, HttpStatus.OK);
+    }
+
     @Override
     public ResponseEntity<Light> update(Long id, Light light) {
         Optional<Light> lightOptional =
                 repository.findById(id)
                 .map(v -> {
-                    v.setAddress(light.getAddress());
+                    v.setIp(light.getIp());
                     v.setOn(light.getOn());
                     v.setIntensity(light.getIntensity());
                     v.setRed(light.getRed());
@@ -87,6 +93,7 @@ public class LightService implements IService<Light> {
             Light light = lightOpt.get();
             if (light.getOn()) {
                 //todo send data to ESP-8266 to turn of light
+                //ArduinoController turnOf(
             } else {
                 //todo send data to ESP-8266 to turn on light
             }

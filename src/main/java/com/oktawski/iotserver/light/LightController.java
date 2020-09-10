@@ -38,6 +38,11 @@ public class LightController {
         return service.getById(id);
     }
 
+    @GetMapping("/ip/{ip}")
+    public ResponseEntity<Light> getLightByIp(@PathVariable("ip") String ip){
+        return service.getByIp(ip);
+    }
+
     @PostMapping("{id}")
     public ResponseEntity<Light> updateLight(@PathVariable("id") Long id, @RequestBody Light light){
         return service.update(id, light);

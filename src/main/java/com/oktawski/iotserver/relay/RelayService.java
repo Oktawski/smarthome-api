@@ -65,7 +65,7 @@ public class RelayService implements IService<Relay> {
                 repository.findById(id)
                 .map(v -> {
                     v.setName(relay.getName());
-                    v.setAddress(relay.getAddress());
+                    v.setIp(relay.getIp());
                     v.setOn(relay.getOn());
                     return v;
                 });
