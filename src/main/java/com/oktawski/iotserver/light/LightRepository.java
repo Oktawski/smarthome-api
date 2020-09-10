@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository("lightRepository")
 public interface LightRepository extends JpaRepository<Light, Long> {
 
-    @Query("SELECT light FROM Light light WHERE light.ip = ?1")
+    @Query("select light from Light light where light.ip = ?1")
     Light findLightByIp(String ip);
 }

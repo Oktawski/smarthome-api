@@ -1,5 +1,6 @@
 package com.oktawski.iotserver.light;
 
+import com.oktawski.iotserver.superclasses.IController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -9,7 +10,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("lights")
-public class LightController {
+public class LightController implements IController<Light> {
 
     private final LightService service;
 
@@ -18,38 +19,45 @@ public class LightController {
         this.service = service;
     }
 
-    @PostMapping("add")
-    public ResponseEntity<Light> addLight(@RequestBody Light light){
+    @PostMapping
+    @Override
+    public ResponseEntity<Light> add(@RequestBody Light light){
         return service.add(light);
     }
 
-    @PostMapping("{id}/remove")
-    public ResponseEntity<Light> removeLight(@PathVariable("id") Long id){
+    @DeleteMapping("{id}")
+    @Override
+    public ResponseEntity<Light> deleteById(@PathVariable("id") Long id){
         return service.deleteById(id);
     }
 
-    @GetMapping()
-    public ResponseEntity<List<Light>> getAllLights(){
+    @GetMapping
+    @Override
+    public ResponseEntity<List<Light>> getAll(){
         return service.getAll();
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Light> getLightById(@PathVariable("id") Long id){
+    @Override
+    public ResponseEntity<Light> getById(@PathVariable("id") Long id){
         return service.getById(id);
     }
 
     @GetMapping("/ip/{ip}")
-    public ResponseEntity<Light> getLightByIp(@PathVariable("ip") String ip){
+    @Override
+    public ResponseEntity<Light> getByIp(@PathVariable("ip") String ip){
         return service.getByIp(ip);
     }
 
-    @PostMapping("{id}")
-    public ResponseEntity<Light> updateLight(@PathVariable("id") Long id, @RequestBody Light light){
+    @PutMapping("{id}")
+    @Override
+    public ResponseEntity<Light> update(@PathVariable("id") Long id, @RequestBody Light light){
         return service.update(id, light);
     }
 
     @PostMapping("{id}/turn")
-    public ResponseEntity<Light> turnLight(@PathVariable("id") Long id){
+    @Override
+    public ResponseEntity<Light> turnOnOf(@PathVariable("id") Long id){
         return service.turnOnOf(id);
     }
 

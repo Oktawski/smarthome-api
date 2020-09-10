@@ -17,7 +17,7 @@ public class RelayService implements IService<Relay> {
     private final RelayRepository repository;
 
     @Autowired
-    public RelayService(@Qualifier("relayRepository") RelayRepository repository){
+    public RelayService(@Qualifier("relayRepo") RelayRepository repository){
         this.repository = repository;
     }
 
@@ -34,9 +34,11 @@ public class RelayService implements IService<Relay> {
     @Override
     public ResponseEntity<Relay> deleteById(Long id) {
         Optional<Relay> relayOptional = repository.findById(id);
-        repository.delete(relayOptional.get());
-        if(!repository.exists(Example.of(relayOptional.get()))){
-            return new ResponseEntity<>(null, HttpStatus.OK);
+        if(relayOptional.isPresent()){
+            repository.delete(relayOptional.get());
+            if(!repository.exists(Example.of(relayOptional.get()))) {
+                return new ResponseEntity<>(null, HttpStatus.OK);
+            }
         }
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
@@ -55,6 +57,15 @@ public class RelayService implements IService<Relay> {
         Optional<Relay> relayOptional = repository.findById(id);
         if(relayOptional.isPresent()){
             return new ResponseEntity<>(relayOptional.get(), HttpStatus.FOUND);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    @Override
+    public ResponseEntity<Relay> getByIp(String ip) {
+        Relay relay = repository.findRelayByIp(ip);
+        if(relay != null){
+            return new ResponseEntity<>(relay, HttpStatus.FOUND);
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }

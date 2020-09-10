@@ -4,7 +4,6 @@ import com.oktawski.iotserver.superclasses.IService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,8 @@ public class LightService implements IService<Light> {
         this.repository = repository;
     }
 
+    //TODO allow only unique ip to be added
+    @Override
     public ResponseEntity<Light> add(Light light){
         repository.save(light);
 
@@ -31,12 +32,15 @@ public class LightService implements IService<Light> {
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
+    //TODO create service superclass and implement some methods
     @Override
     public ResponseEntity<Light> deleteById(Long id) {
         Optional<Light> lightOptional = repository.findById(id);
-        repository.delete(lightOptional.get());
-        if(!repository.exists(Example.of(lightOptional.get()))){
-            return new ResponseEntity<>(null, HttpStatus.OK);
+        if(lightOptional.isPresent()){
+            repository.delete(lightOptional.get());
+            if(!repository.exists(Example.of(lightOptional.get()))){
+                return new ResponseEntity<>(null, HttpStatus.OK);
+            }
         }
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
@@ -59,7 +63,10 @@ public class LightService implements IService<Light> {
 
     public ResponseEntity<Light> getByIp(String ip){
         Light light = repository.findLightByIp(ip);
-        return new ResponseEntity<>(light, HttpStatus.OK);
+        if(light != null){
+            return new ResponseEntity<>(light, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @Override
