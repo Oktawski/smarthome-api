@@ -7,6 +7,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class RelayService implements IService<Relay> {
     public ResponseEntity<List<Relay>> getAll() {
         List<Relay> relays = repository.findAll();
         if(!relays.isEmpty()){
-            return new ResponseEntity<>(relays, HttpStatus.FOUND);
+            return new ResponseEntity<>(relays, HttpStatus.OK);
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
@@ -56,7 +57,7 @@ public class RelayService implements IService<Relay> {
     public ResponseEntity<Relay> getById(Long id) {
         Optional<Relay> relayOptional = repository.findById(id);
         if(relayOptional.isPresent()){
-            return new ResponseEntity<>(relayOptional.get(), HttpStatus.FOUND);
+            return new ResponseEntity<>(relayOptional.get(), HttpStatus.OK);
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
@@ -65,7 +66,7 @@ public class RelayService implements IService<Relay> {
     public ResponseEntity<Relay> getByIp(String ip) {
         Relay relay = repository.findRelayByIp(ip);
         if(relay != null){
-            return new ResponseEntity<>(relay, HttpStatus.FOUND);
+            return new ResponseEntity<>(relay, HttpStatus.OK);
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
