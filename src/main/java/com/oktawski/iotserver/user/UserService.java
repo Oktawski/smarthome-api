@@ -21,11 +21,6 @@ public class UserService {
 
     private final UserRepository repository;
 
-    @Bean
-    private PasswordEncoder getEncoder(){
-        return new BCryptPasswordEncoder();
-    };
-
     @Autowired
     public UserService(@Qualifier("userRepo") UserRepository repository) {
         this.repository = repository;
@@ -64,4 +59,9 @@ public class UserService {
         return new ResponseEntity<>
                 (new LoginResponse(user, "Provided credentials do not match any user"), HttpStatus.BAD_REQUEST);
     }
+
+    @Bean
+    private PasswordEncoder getEncoder(){
+        return new BCryptPasswordEncoder();
+    };
  }
