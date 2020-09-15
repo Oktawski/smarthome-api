@@ -5,9 +5,12 @@ import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.user.models.SignupResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -17,6 +20,11 @@ import javax.validation.Valid;
 public class UserService {
 
     private final UserRepository repository;
+
+    @Bean
+    private PasswordEncoder getEncoder(){
+        return new BCryptPasswordEncoder();
+    };
 
     @Autowired
     public UserService(@Qualifier("userRepo") UserRepository repository) {
@@ -34,7 +42,9 @@ public class UserService {
                     (new SignupResponse(user, "Username taken"), HttpStatus.BAD_REQUEST);
         }
 
+        user.setPassword(getEncoder().encode(user.getPassword()));
         repository.save(user);
+
         if(repository.exists(Example.of(user))){
             return new ResponseEntity<>
                     (new SignupResponse(user, "Account created"), HttpStatus.OK);
