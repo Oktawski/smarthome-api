@@ -4,13 +4,16 @@ import com.oktawski.iotserver.superclasses.IService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RelayService implements IService<Relay> {
@@ -46,7 +49,11 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public ResponseEntity<List<Relay>> getAll() {
-        List<Relay> relays = repository.findAll();
+        List<Relay> relays = repository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Relay::getId))
+                .collect(Collectors.toList());
+
         if(!relays.isEmpty()){
             return new ResponseEntity<>(relays, HttpStatus.OK);
         }
