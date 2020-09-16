@@ -1,8 +1,8 @@
 package com.oktawski.iotserver.user;
 
 import com.oktawski.iotserver.user.models.LoginResponse;
-import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.user.models.SignupResponse;
+import com.oktawski.iotserver.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

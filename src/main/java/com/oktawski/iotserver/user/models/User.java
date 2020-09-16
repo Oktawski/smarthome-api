@@ -2,14 +2,13 @@ package com.oktawski.iotserver.user.models;
 
 import com.oktawski.iotserver.light.Light;
 import com.oktawski.iotserver.relay.Relay;
-import com.oktawski.iotserver.user.validators.ValidatePassword;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -38,14 +37,14 @@ public class User {
             name = "user_relays",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "relay_id"))
-    private Set<Relay> relaySet = new HashSet<>();
+    private List<Relay> relayList = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_lights",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "light_id"))
-    private Set<Light> lightSet = new HashSet<>();
+    private List<Light> lightList = new ArrayList<>();
 
     public User(){}
 
@@ -103,19 +102,19 @@ public class User {
         this.username = username;
     }
 
-    public Set<Relay> getRelaySet() {
-        return relaySet;
+    public List<Relay> getRelayList() {
+        return relayList;
     }
 
-    public void setRelaySet(Set<Relay> relaySet) {
-        this.relaySet = relaySet;
+    public void setRelayList(List<Relay> relayList) {
+        this.relayList = relayList;
     }
 
-    public Set<Light> getLightSet() {
-        return lightSet;
+    public List<Light> getLightList() {
+        return lightList;
     }
 
-    public void setLightSet(Set<Light> lightSet) {
-        this.lightSet = lightSet;
+    public void setLightList(List<Light> lightList) {
+        this.lightList = lightList;
     }
 }
