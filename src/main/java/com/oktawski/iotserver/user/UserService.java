@@ -1,8 +1,8 @@
 package com.oktawski.iotserver.user;
 
 import com.oktawski.iotserver.user.models.LoginResponse;
-import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.user.models.SignupResponse;
+import com.oktawski.iotserver.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -12,9 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.validation.Valid;
 
 @Service
 public class UserService {
@@ -26,7 +23,7 @@ public class UserService {
         this.repository = repository;
     }
 
-    public ResponseEntity<SignupResponse> signup(@Valid User user){
+    public ResponseEntity<SignupResponse> signup(User user){
         if(repository.existsByEmail(user.getEmail())){
             return new ResponseEntity<>
                     (new SignupResponse(user, "Email taken"), HttpStatus.BAD_REQUEST);
@@ -37,7 +34,8 @@ public class UserService {
                     (new SignupResponse(user, "Username taken"), HttpStatus.BAD_REQUEST);
         }
 
-        user.setPassword(getEncoder().encode(user.getPassword()));
+        //TODO implement password encryption to not violate constraints
+        //user.setPassword(getEncoder().encode(user.getPassword()));
         repository.save(user);
 
         if(repository.exists(Example.of(user))){

@@ -32,20 +32,6 @@ public class User {
     @Size(max = 30)
     private String password;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_relays",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "relay_id"))
-    private List<Relay> relayList = new ArrayList<>();
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_lights",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "light_id"))
-    private List<Light> lightList = new ArrayList<>();
-
     public User(){}
 
     public User(
@@ -100,21 +86,5 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public List<Relay> getRelayList() {
-        return relayList;
-    }
-
-    public void setRelayList(List<Relay> relayList) {
-        this.relayList = relayList;
-    }
-
-    public List<Light> getLightList() {
-        return lightList;
-    }
-
-    public void setLightList(List<Light> lightList) {
-        this.lightList = lightList;
     }
 }

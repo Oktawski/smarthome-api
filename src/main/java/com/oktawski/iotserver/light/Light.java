@@ -1,6 +1,8 @@
 package com.oktawski.iotserver.light;
 
 import com.oktawski.iotserver.superclasses.WifiDevice;
+import com.oktawski.iotserver.user.models.User;
+import org.hibernate.annotations.JoinColumnOrFormula;
 
 import javax.persistence.*;
 
@@ -14,6 +16,10 @@ public class Light extends WifiDevice {
     private Long id;
 
     private short red, green, blue, intensity;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Light(){}
 
@@ -64,5 +70,17 @@ public class Light extends WifiDevice {
 
     public void setIntensity(short intensity) {
         this.intensity = intensity;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
