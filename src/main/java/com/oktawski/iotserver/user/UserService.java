@@ -52,8 +52,9 @@ public class UserService {
     public ResponseEntity<LoginResponse> signin(User user){
 
         if(repository.existsByEmailAndPassword(user.getEmail(), user.getPassword())){
+            User userLogged = repository.findByEmail(user.getEmail()).get();
             return new ResponseEntity<>
-                    (new LoginResponse(user, "Signed in"), HttpStatus.OK);
+                    (new LoginResponse(userLogged, "Signed in"), HttpStatus.OK);
         }
 
         return new ResponseEntity<>
