@@ -121,46 +121,112 @@ public class RelayService implements IService<Relay> {
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
+    public ResponseEntity<Relay> addByUser(Relay relay, Long userId){
+        Optional<User> user = userRepo.findById(userId);
 
-    //new things
-
-    public ResponseEntity<?> addByUser(Long userId, Relay relay){
-        Optional<User> userOpt = userRepo.findById(userId);
-        if(userOpt.isPresent()){
-            relay.setUser(userOpt.get());
+        if(user.isPresent()){
+            relay.setUser(user.get());
             relayRepo.save(relay);
+            return new ResponseEntity<>(relay, HttpStatus.OK);
+        }
 
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
 
-            return new ResponseEntity<>(userOpt.get(), HttpStatus.OK);
+    public ResponseEntity<?> deleteByUser(Long relayId, Long userId){
+        Optional<Relay> relayOpt = relayRepo.findById(relayId);
+        if(relayOpt.isPresent()){
+            Relay relay = relayOpt.get();
+            if(relay.getUser().getId() == userId){
+                relayRepo.delete(relay);
+                return new ResponseEntity<>(relay.toString() + " removed", HttpStatus.OK);
+            }
         }
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity<?> getAllByUser(Long userId){
-        List<Relay> relays = relayRepo.findByUserId(userId);
-        if(!relays.isEmpty()) {
+        Optional<User> userOpt = userRepo.findById(userId);
+        if(userOpt.isPresent()){
+            List<Relay> relays = userOpt.get().getRelayList().stream()
+                    .sorted(Comparator.comparing(Relay::getId))
+                    .collect(Collectors.toList());
+
             return new ResponseEntity<>(relays, HttpStatus.OK);
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<?> deleteById(Long userId, Long relayId) {
-        Relay relay = find(userId, relayId);
-        if(relay != null){
-            relayRepo.delete(relay);
-            return new ResponseEntity<>("Deleted", HttpStatus.OK);
-        }
+    public ResponseEntity<?> getOneById(Long relayId, Long userId){
+        Optional<User> userOpt = userRepo.findById(userId);
+        if(userOpt.isPresent()){
+            List<Relay> relays = userOpt.get().getRelayList();
+            Optional<Relay> relay = relays.stream()
+                    .filter(v -> v.getId() == relayId)
+                    .findFirst();
 
+            if(relay.isPresent()){
+                return new ResponseEntity<>(relay, HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<?> getOneByIp(String relayIp, Long userId){
+        Optional<User> userOpt = userRepo.findById(userId);
+        if(userOpt.isPresent()){
+            List<Relay> relays = userOpt.get().getRelayList();
+            Optional<Relay> relay = relays.stream()
+                    .filter(v -> v.getIp().equals(relayIp))
+                    .findFirst();
+
+            if(relay.isPresent()){
+                return new ResponseEntity<>(relay, HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<?> updateById(Long relayId, Long userId, Relay relay){
+        Optional<Relay> relayOpt = findRelay(relayId, userId)
+                .map(v -> {
+                    v.setName(relay.getName());
+                    v.setIp(relay.getIp());
+                    v.setOn(relay.getOn());
+                    return v;
+                });
+
+        relayRepo.save(relayOpt.get());
+
+        if(relayRepo.exists(Example.of(relayOpt.get()))){
+            return new ResponseEntity<>(relayOpt.get(), HttpStatus.OK);
+        }
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
-    public Relay find(Long userId, Long relayId){
-        User user = userRepo.getOne(userId);
-        Relay relay = relayRepo.getOne(relayId);
-        if(relay.getUser().equals(user)){
-            return relay;
+    public ResponseEntity<?> turnByUser(Long relayId, Long userId) {
+        Optional<Relay> relayOpt = findRelay(relayId, userId);
+
+        if(relayOpt.isPresent()){
+            Relay relay = relayOpt.get();
+            if(relay.getOn()){
+                //todo send data to ESP-8266 to turn of relay
+            }
+            else{
+                //todo send data to ESP-8266 to turn on relay
+            }
+            relay.turn();
+            relayRepo.save(relay);
+
+            return new ResponseEntity<>(null, HttpStatus.OK);
         }
-        return null;
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
+    private Optional<Relay> findRelay(Long relayId, Long userId){
+        User user = userRepo.getOne(userId);
+        return user.getRelayList().stream()
+                .filter(v -> v.getId() == relayId)
+                .findFirst();
+    }
 }

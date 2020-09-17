@@ -1,5 +1,6 @@
 package com.oktawski.iotserver.user.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oktawski.iotserver.light.Light;
 import com.oktawski.iotserver.relay.Relay;
 
@@ -29,15 +30,18 @@ public class User {
 
     //TODO password validator
     @NotBlank
-    @Size(max = 30)
     private String password;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Relay> relayList;
 
     public User(){}
 
     public User(
             @NotBlank @Size(max = 20) String username,
             @NotBlank @Email String email,
-            @NotBlank @Size(max = 30) String password)
+            @NotBlank String password)
     {
         this.username = username;
         this.email = email;
@@ -48,7 +52,7 @@ public class User {
             Long id,
             @NotBlank @Size(max = 20) String username,
             @NotBlank @Email String email,
-            @NotBlank @Size(max = 30) String password)
+            @NotBlank String password)
     {
         this.id = id;
         this.username = username;
@@ -86,5 +90,13 @@ public class User {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public List<Relay> getRelayList() {
+        return relayList;
+    }
+
+    public void setRelayList(List<Relay> relayList) {
+        this.relayList = relayList;
     }
 }
