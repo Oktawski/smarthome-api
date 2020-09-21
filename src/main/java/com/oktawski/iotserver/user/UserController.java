@@ -6,6 +6,7 @@ import com.oktawski.iotserver.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,5 +30,10 @@ public class UserController {
     @PostMapping("signin")
     public ResponseEntity<LoginResponse> signin(@RequestBody User user) {
         return service.signin(user);
+    }
+
+    @PostMapping("{user_id}/update")
+    public ResponseEntity<?> update(@PathVariable("user_id") Long user_id, @RequestBody User user){
+        return service.update(user_id, user);
     }
 }
