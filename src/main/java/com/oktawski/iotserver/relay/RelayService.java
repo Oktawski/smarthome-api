@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -41,13 +42,16 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public ResponseEntity<Relay> deleteById(Long id) {
-        Optional<Relay> relayOptional = relayRepo.findById(id);
-        if(relayOptional.isPresent()){
-            relayRepo.delete(relayOptional.get());
-            if(!relayRepo.exists(Example.of(relayOptional.get()))) {
-                return new ResponseEntity<>(null, HttpStatus.OK);
-            }
+        Optional<Relay> relayOpt = relayRepo.findById(id);
+
+        relayOpt.ifPresent(v -> {
+            relayRepo.delete(v);
+        });
+
+        if(!relayRepo.existsById(id)){
+            return new ResponseEntity<>(relayOpt.get(), HttpStatus.OK);
         }
+
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
@@ -93,7 +97,7 @@ public class RelayService implements IService<Relay> {
                     return v;
                 });
 
-        relayRepo.save(relayOptional.get());
+        relayOptional.ifPresent(relayRepo::save);
 
         if(relayRepo.exists(Example.of(relayOptional.get()))){
             //todo send data to ESP-8266
@@ -122,11 +126,14 @@ public class RelayService implements IService<Relay> {
     }
 
     public ResponseEntity<Relay> addByUser(Relay relay, Long userId){
-        Optional<User> user = userRepo.findById(userId);
+        Optional<User> userOpt = userRepo.findById(userId);
 
-        if(user.isPresent()){
-            relay.setUser(user.get());
+        userOpt.ifPresent(v -> {
+            relay.setUser(v);
             relayRepo.save(relay);
+        });
+
+        if(relayRepo.findOne(Example.of(relay)).isPresent()){
             return new ResponseEntity<>(relay, HttpStatus.OK);
         }
 
@@ -135,13 +142,16 @@ public class RelayService implements IService<Relay> {
 
     public ResponseEntity<?> deleteByUser(Long relayId, Long userId){
         Optional<Relay> relayOpt = relayRepo.findById(relayId);
-        if(relayOpt.isPresent()){
-            Relay relay = relayOpt.get();
-            if(relay.getUser().getId() == userId){
-                relayRepo.delete(relay);
-                return new ResponseEntity<>(relay.toString() + " removed", HttpStatus.OK);
+        relayOpt.ifPresent(v -> {
+            if(v.getUser().getId() == userId){
+                relayRepo.delete(v);
             }
+        });
+
+        if(relayRepo.findById(relayId).isEmpty()){
+            return new ResponseEntity<>("Relay  removed", HttpStatus.OK);
         }
+
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
