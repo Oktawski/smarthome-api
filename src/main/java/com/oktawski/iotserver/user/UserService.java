@@ -1,14 +1,13 @@
 package com.oktawski.iotserver.user;
 
+import com.oktawski.iotserver.security.SecurityConfig;
 import com.oktawski.iotserver.user.models.LoginResponse;
 import com.oktawski.iotserver.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +18,16 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserService(@Qualifier("userRepo") UserRepository repository) {
         this.repository = repository;
+        this.passwordEncoder = SecurityConfig.passwordEncoder();
+    }
+
+    public ResponseEntity all(){
+        return new ResponseEntity(repository.findAll(), HttpStatus.OK);
     }
 
     public ResponseEntity signup(@Valid User user){
@@ -36,8 +41,7 @@ public class UserService {
                     ("Username taken", HttpStatus.BAD_REQUEST);
         }
 
-        //TODO implement password encryption to not violate constraints
-        //user.setPassword(getEncoder().encode(user.getPassword()));
+        //user.setPassword(passwordEncoder.encode(user.getPassword()));
         repository.save(user);
 
         if(repository.exists(Example.of(user))){
@@ -51,11 +55,12 @@ public class UserService {
 
     public ResponseEntity<LoginResponse> signin(User user){
 
+        //String encodedPassword = passwordEncoder.encode(user.getPassword());
+
         //TODO return some kind of token to verify client
         if(repository.existsByEmailAndPassword(user.getEmail(), user.getPassword())){
-            User userLogged = repository.findByEmail(user.getEmail()).get();
             return new ResponseEntity<>
-                    (new LoginResponse(userLogged, "Signed in"), HttpStatus.OK);
+                    (new LoginResponse(user, "Signed in"), HttpStatus.OK);
         }
 
         return new ResponseEntity<>
@@ -78,8 +83,4 @@ public class UserService {
         return new ResponseEntity<>("User updated", HttpStatus.OK);
     }
 
-    @Bean
-    private PasswordEncoder getEncoder(){
-        return new BCryptPasswordEncoder();
-    };
- }
+}

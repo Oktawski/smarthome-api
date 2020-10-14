@@ -28,22 +28,35 @@ public class User {
 
     //TODO password validator
     @NotBlank
+    @Column(name="password", length=9999)
     private String password;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Relay> relayList;
 
+    private String permissions = "";
+
+    private String roles = "";
+
+    private boolean active = true;
+
+
     public User(){}
 
     public User(
             @NotBlank @Size(max = 20) String username,
             @NotBlank @Email String email,
-            @NotBlank String password)
+            @NotBlank String password,
+            String permissions,
+            String roles)
     {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.permissions = permissions;
+        this.roles = roles;
+        this.active = true;
     }
 
     public User(
@@ -56,6 +69,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.active = true;
     }
 
     public Long getId() {
@@ -96,5 +110,29 @@ public class User {
 
     public void setRelayList(List<Relay> relayList) {
         this.relayList = relayList;
+    }
+
+    public String getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(String permissions) {
+        this.permissions = permissions;
+    }
+
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
