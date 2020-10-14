@@ -45,7 +45,7 @@ public class UserService implements UserDetailsService {
                     ("Username taken", HttpStatus.BAD_REQUEST);
         }
 
-        //user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         repository.save(user);
 
         if(repository.exists(Example.of(user))){
@@ -59,9 +59,9 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<LoginResponse> signin(User user){
 
-        //String encodedPassword = passwordEncoder.encode(user.getPassword());
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
         //TODO return some kind of token to verify client
-        if(repository.existsByEmailAndPassword(user.getEmail(), user.getPassword())){
+        if(repository.existsByEmailAndPassword(user.getEmail(), encodedPassword)){
             User loggedUser = repository.findByEmail(user.getEmail());
             return new ResponseEntity<>
                     (new LoginResponse(loggedUser, "Signed in"), HttpStatus.OK);

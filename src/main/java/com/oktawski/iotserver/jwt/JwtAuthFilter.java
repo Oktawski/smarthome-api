@@ -1,6 +1,7 @@
 package com.oktawski.iotserver.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oktawski.iotserver.user.models.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
 
     public JwtAuthFilter(AuthenticationManager authManager){
         this.authManager = authManager;
+        setFilterProcessesUrl("/user/signin");
     }
 
     @Override
@@ -34,7 +36,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         try {
             UsernameAndPasswordAuthRequest authRequest = new ObjectMapper()
                     .readValue(request.getInputStream(), UsernameAndPasswordAuthRequest.class);
-
+	    
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     authRequest.getUsername(),
                     authRequest.getPassword()
@@ -54,6 +56,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
 
+        //TODO export key to other class or app properties
         String token = Jwts.builder()
                 .setSubject(authResult.getName())
                 .claim("authorities", authResult.getAuthorities())
@@ -63,7 +66,5 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
                 .compact();
 
         response.addHeader("Authorization", "Bearer " + token);
-
-        super.successfulAuthentication(request, response, chain, authResult);
     }
 }

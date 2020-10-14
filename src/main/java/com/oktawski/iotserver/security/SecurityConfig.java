@@ -1,6 +1,7 @@
 package com.oktawski.iotserver.security;
 
 import com.oktawski.iotserver.jwt.JwtAuthFilter;
+import com.oktawski.iotserver.jwt.JwtVerifyFilter;
 import com.oktawski.iotserver.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -32,12 +33,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .authorizeRequests()
+                .antMatchers("/relays", "/user/**").permitAll()
+                .anyRequest().authenticated()
                 .and()
                 .addFilter(new JwtAuthFilter(authenticationManager()))
-                .authorizeRequests()
-                .antMatchers("/relays", "/relays/**", "/user/**", "/login/**").permitAll()
-                .anyRequest().authenticated();
+                .addFilterAfter(new JwtVerifyFilter(), JwtAuthFilter.class)
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     @Override
