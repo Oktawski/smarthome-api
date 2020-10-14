@@ -1,5 +1,6 @@
 package com.oktawski.iotserver.user;
 
+import com.oktawski.iotserver.security.PasswordConfig;
 import com.oktawski.iotserver.security.SecurityConfig;
 import com.oktawski.iotserver.user.models.LoginResponse;
 import com.oktawski.iotserver.user.models.User;
@@ -8,6 +9,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,15 +19,15 @@ import javax.validation.Valid;
 import java.util.Optional;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(@Qualifier("userRepo") UserRepository repository) {
+    public UserService(@Qualifier("userRepo") UserRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
-        this.passwordEncoder = SecurityConfig.passwordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public ResponseEntity all(){
@@ -56,11 +60,11 @@ public class UserService {
     public ResponseEntity<LoginResponse> signin(User user){
 
         //String encodedPassword = passwordEncoder.encode(user.getPassword());
-
         //TODO return some kind of token to verify client
         if(repository.existsByEmailAndPassword(user.getEmail(), user.getPassword())){
+            User loggedUser = repository.findByEmail(user.getEmail());
             return new ResponseEntity<>
-                    (new LoginResponse(user, "Signed in"), HttpStatus.OK);
+                    (new LoginResponse(loggedUser, "Signed in"), HttpStatus.OK);
         }
 
         return new ResponseEntity<>
@@ -83,4 +87,9 @@ public class UserService {
         return new ResponseEntity<>("User updated", HttpStatus.OK);
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return repository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(String.format("Username %s not found", username)));
+    }
 }

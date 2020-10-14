@@ -2,16 +2,19 @@ package com.oktawski.iotserver.user.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oktawski.iotserver.relay.Relay;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,11 +38,14 @@ public class User {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Relay> relayList;
 
-    private String permissions = "";
 
-    private String roles = "";
+    private boolean isNonExpired = true;
 
-    private boolean active = true;
+    private boolean isNonLocked = true;
+
+    private boolean isEnabled = true;
+
+    private boolean isCredentialsNonExpired = true;
 
 
     public User(){}
@@ -48,15 +54,12 @@ public class User {
             @NotBlank @Size(max = 20) String username,
             @NotBlank @Email String email,
             @NotBlank String password,
-            String permissions,
-            String roles)
+            List<? extends GrantedAuthority> grantedAuthorities)
     {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.permissions = permissions;
-        this.roles = roles;
-        this.active = true;
+        this.isEnabled = true;
     }
 
     public User(
@@ -69,7 +72,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.active = true;
+        this.isEnabled = true;
     }
 
     public Long getId() {
@@ -112,27 +115,29 @@ public class User {
         this.relayList = relayList;
     }
 
-    public String getPermissions() {
-        return permissions;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
     }
 
-    public void setPermissions(String permissions) {
-        this.permissions = permissions;
+    @Override
+    public boolean isAccountNonExpired() {
+        return this.isNonExpired;
     }
 
-    public String getRoles() {
-        return roles;
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.isNonLocked;
     }
 
-    public void setRoles(String roles) {
-        this.roles = roles;
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return this.isCredentialsNonExpired;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
+    @Override
+    public boolean isEnabled() {
+        return this.isEnabled;
     }
 }
