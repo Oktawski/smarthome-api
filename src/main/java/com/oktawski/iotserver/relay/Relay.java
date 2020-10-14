@@ -3,8 +3,6 @@ package com.oktawski.iotserver.relay;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oktawski.iotserver.superclasses.WifiDevice;
 import com.oktawski.iotserver.user.models.User;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 
@@ -19,8 +17,8 @@ public class Relay extends WifiDevice {
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = true)
-    private User user;
+    @JoinColumn(name = "user_id")
+    private User user = null;
 
     public Relay(){}
 

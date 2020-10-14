@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+//TODO get userId or username from header and pass to service
 @Controller
 @RequestMapping("relays")
 public class RelayController implements IController<Relay> {
@@ -19,6 +20,7 @@ public class RelayController implements IController<Relay> {
         this.service = service;
     }
 
+    //TODO get JWT from header and pass to service
     @PostMapping
     @Override
     public ResponseEntity<Relay> add(@RequestBody Relay relay) {
