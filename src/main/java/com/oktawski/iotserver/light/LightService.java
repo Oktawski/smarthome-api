@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class LightService implements IService<Light> {
+public class LightService {
 
     private final LightRepository repository;
 
@@ -22,7 +22,6 @@ public class LightService implements IService<Light> {
     }
 
     //TODO allow only unique ip to be added
-    @Override
     public ResponseEntity<Light> add(Light light){
         repository.save(light);
 
@@ -33,7 +32,6 @@ public class LightService implements IService<Light> {
     }
 
     //TODO create service superclass and implement some methods
-    @Override
     public ResponseEntity<Light> deleteById(Long id) {
         Optional<Light> lightOptional = repository.findById(id);
         if(lightOptional.isPresent()){
@@ -69,7 +67,6 @@ public class LightService implements IService<Light> {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    @Override
     public ResponseEntity<Light> update(Long id, Light light) {
         Optional<Light> lightOptional =
                 repository.findById(id)
@@ -93,7 +90,6 @@ public class LightService implements IService<Light> {
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
-    @Override
     public ResponseEntity<Light> turnOnOf(Long id) {
         Optional<Light> lightOpt = repository.findById(id);
         if(lightOpt.isPresent()) {

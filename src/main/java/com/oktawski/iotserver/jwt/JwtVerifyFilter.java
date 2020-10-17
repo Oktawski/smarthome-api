@@ -16,9 +16,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -33,7 +31,9 @@ public class JwtVerifyFilter extends OncePerRequestFilter {
 
             String authorizationHeader = request.getHeader("Authorization");
 
-            if(authorizationHeader == null || !authorizationHeader.startsWith("Bearer")){
+            System.out.println(authorizationHeader);
+
+            if(authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")){
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -48,6 +48,7 @@ public class JwtVerifyFilter extends OncePerRequestFilter {
 
                 Claims body = claimsJws.getBody();
                 String username = body.getSubject();
+                System.out.println("Username from JwtVerifyFilter " + username);
                 List<Map<String, String>> authorities = (List<Map<String, String>>) body.get("authorities");
 
                 Set<SimpleGrantedAuthority> authoritySet = authorities.stream()
