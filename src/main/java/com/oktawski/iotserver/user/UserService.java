@@ -1,8 +1,6 @@
 package com.oktawski.iotserver.user;
 
-import com.oktawski.iotserver.security.PasswordConfig;
-import com.oktawski.iotserver.security.SecurityConfig;
-import com.oktawski.iotserver.user.models.LoginResponse;
+import com.oktawski.iotserver.responses.UserResponse;
 import com.oktawski.iotserver.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,18 +55,18 @@ public class UserService implements UserDetailsService {
                 ("Something went wrong", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<LoginResponse> signin(User user){
+    public ResponseEntity<UserResponse> signin(User user){
 
         String encodedPassword = passwordEncoder.encode(user.getPassword());
-        //TODO return some kind of token to verify client
+
         if(repository.existsByEmailAndPassword(user.getEmail(), encodedPassword)){
             User loggedUser = repository.findByEmail(user.getEmail());
             return new ResponseEntity<>
-                    (new LoginResponse(loggedUser, "Signed in"), HttpStatus.OK);
+                    (new UserResponse(loggedUser, "Signed in"), HttpStatus.OK);
         }
 
         return new ResponseEntity<>
-                (new LoginResponse(user, "Provided credentials do not match any user"), HttpStatus.BAD_REQUEST);
+                (new UserResponse(user, "Provided credentials do not match any user"), HttpStatus.BAD_REQUEST);
     }
 
     public ResponseEntity<?> update(Long userId, User user){

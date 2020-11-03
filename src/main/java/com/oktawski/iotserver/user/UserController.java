@@ -1,9 +1,7 @@
 package com.oktawski.iotserver.user;
 
-import com.oktawski.iotserver.user.models.LoginResponse;
-import com.oktawski.iotserver.user.models.SignupResponse;
+import com.oktawski.iotserver.responses.UserResponse;
 import com.oktawski.iotserver.user.models.User;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,12 +24,12 @@ public class UserController {
     public ResponseEntity<List<User>> getAll(){return service.all();}
 
     @PostMapping("signup")
-    public ResponseEntity<SignupResponse> signup(@RequestBody User user){
+    public ResponseEntity<UserResponse> signup(@RequestBody User user){
         return service.signup(user);
     }
 
     @PostMapping("signin")
-    public ResponseEntity<LoginResponse> signin(@RequestBody User user) {
+    public ResponseEntity<UserResponse> signin(@RequestBody User user) {
         return service.signin(user);
     }
 

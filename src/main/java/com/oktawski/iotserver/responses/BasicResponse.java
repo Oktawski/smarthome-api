@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.user.models;
+package com.oktawski.iotserver.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
