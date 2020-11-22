@@ -4,6 +4,7 @@ import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
+import org.hibernate.annotations.NotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
@@ -91,14 +92,12 @@ public class RelayService implements IService<Relay> {
 
         if(userOpt.isPresent()){
             List<Relay> relays = userOpt.get().getRelayList();
-            Optional<Relay> relay = relays.stream()
+            return relays.stream()
                     .filter(v -> v.getId() == relayId)
-                    .findFirst();
+                    .findFirst()
+                    .map(ResponseEntity::ok)    //if found return ResponseEntity<>(relay, OK)
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
-            relay.ifPresentOrElse(
-                    v -> new ResponseEntity<>(v, HttpStatus.OK),
-                    () -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND)
-            );
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
@@ -109,13 +108,12 @@ public class RelayService implements IService<Relay> {
         Optional<User> userOpt = userRepo.findUserByUsername(username);
         if(userOpt.isPresent()){
             List<Relay> relays = userOpt.get().getRelayList();
-            Optional<Relay> relay = relays.stream()
+            return relays.stream()
                     .filter(v -> v.getIp().equals(relayIp))
-                    .findFirst();
+                    .findFirst()
+                    .map(ResponseEntity::ok)
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
-            if(relay.isPresent()){
-                return new ResponseEntity<>(relay.get(), HttpStatus.OK);
-            }
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
