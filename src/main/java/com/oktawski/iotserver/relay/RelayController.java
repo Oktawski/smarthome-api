@@ -20,22 +20,6 @@ public class RelayController implements IController<Relay> {
         this.service = service;
     }
 
-    @PostMapping
-    @Override
-    public ResponseEntity<Relay> add(@RequestHeader("Authorization") String token,
-                                     @RequestBody Relay relay)
-    {
-        return service.add(token, relay);
-    }
-
-    @DeleteMapping("{id}")
-    @Override
-    public ResponseEntity<?> deleteById(@RequestHeader("Authorization") String token,
-                                            @PathVariable("id") Long relayId) {
-
-        return service.deleteById(token, relayId);
-    }
-
     @GetMapping
     @Override
     public ResponseEntity<List<Relay>> getAll(@RequestHeader("Authorization") String token)
@@ -57,6 +41,21 @@ public class RelayController implements IController<Relay> {
         return service.getByIp(token, relayIp);
     }
 
+    @PostMapping
+    @Override
+    public ResponseEntity<Relay> add(@RequestHeader("Authorization") String token,
+                                     @RequestBody Relay relay)
+    {
+        return service.add(token, relay);
+    }
+
+    @PostMapping("{id}/turn")
+    @Override
+    public ResponseEntity<Relay> turnOnOf(@RequestHeader("Authorization") String token,
+                                          @PathVariable("id") Long relayId) {
+        return service.turnOnOf(token, relayId);
+    }
+
     @PutMapping("{id}")
     @Override
     public ResponseEntity<Relay> update(@RequestHeader("Authorization") String token,
@@ -65,10 +64,11 @@ public class RelayController implements IController<Relay> {
         return service.update(token, relayId, relay);
     }
 
-    @PostMapping("{id}/turn")
+    @DeleteMapping("{id}")
     @Override
-    public ResponseEntity<Relay> turnOnOf(@RequestHeader("Authorization") String token,
-                                          @PathVariable("id") Long relayId) {
-        return service.turnOnOf(token, relayId);
+    public ResponseEntity<?> deleteById(@RequestHeader("Authorization") String token,
+                                            @PathVariable("id") Long relayId) {
+
+        return service.deleteById(token, relayId);
     }
 }

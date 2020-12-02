@@ -4,7 +4,6 @@ import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
-import org.hibernate.annotations.NotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
@@ -34,43 +33,6 @@ public class RelayService implements IService<Relay> {
     }
 
     @Override
-    public ResponseEntity<Relay> add(String token, Relay relay) {
-
-        String username = jwtUtil.getUsername(token);
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-        userOpt.ifPresent(v -> {
-            relay.setUser(v);
-            relayRepo.save(relay);
-        });
-
-        if(relayRepo.findOne(Example.of(relay)).isPresent()){
-            return new ResponseEntity<>(relay, HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-
-    @Override
-    public ResponseEntity<?> deleteById(String token, Long relayId) {
-        String username = jwtUtil.getUsername(token);
-        Optional<Relay> relayOpt = relayRepo.findById(relayId);
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-        relayOpt.ifPresent(v -> {
-            if(v.getUser().getId() == userOpt.get().getId()){
-                relayRepo.delete(v);
-            }
-        });
-
-        if(relayRepo.findById(relayId).isEmpty()){
-            return new ResponseEntity<>("Relay  removed", HttpStatus.OK);
-        }
-
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-
-    @Override
     public ResponseEntity<List<Relay>> getAll(String token) {
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
@@ -93,7 +55,7 @@ public class RelayService implements IService<Relay> {
         if(userOpt.isPresent()){
             List<Relay> relays = userOpt.get().getRelayList();
             return relays.stream()
-                    .filter(v -> v.getId() == relayId)
+                    .filter(v -> v.getId().equals(relayId))
                     .findFirst()
                     .map(ResponseEntity::ok)    //if found return ResponseEntity<>(relay, OK)
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -118,6 +80,25 @@ public class RelayService implements IService<Relay> {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
+    //TODO allow only relays with unique ip to be added
+    @Override
+    public ResponseEntity<Relay> add(String token, Relay relay) {
+
+        String username = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        userOpt.ifPresent(v -> {
+            relay.setUser(v);
+            relayRepo.save(relay);
+        });
+
+        if(relayRepo.findOne(Example.of(relay)).isPresent()){
+            return new ResponseEntity<>(relay, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+
     @Override
     public ResponseEntity<Relay> update(String token, Long relayId, Relay relay) {
         String username = jwtUtil.getUsername(token);
@@ -132,7 +113,7 @@ public class RelayService implements IService<Relay> {
                         return v;
                     });
 
-            relayRepo.save(relayOpt.get());
+            relayOpt.ifPresent(relayRepo::save);
 
             if(relayRepo.exists(Example.of(relayOpt.get()))){
                 return new ResponseEntity<>(relayOpt.get(), HttpStatus.OK);
@@ -167,10 +148,33 @@ public class RelayService implements IService<Relay> {
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
+
+
+    @Override
+    public ResponseEntity<?> deleteById(String token, Long relayId) {
+        String username = jwtUtil.getUsername(token);
+        Optional<Relay> relayOpt = relayRepo.findById(relayId);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        relayOpt.ifPresent(v -> {
+            userOpt.ifPresent(b -> {
+                if(v.getUser().getId().equals(b.getId())){
+                    relayRepo.save(v);
+                }
+            });
+        });
+
+        if(relayRepo.findById(relayId).isEmpty()){
+            return new ResponseEntity<>("Relay  removed", HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+
     private Optional<Relay> findRelay(Long relayId, Long userId){
         User user = userRepo.getOne(userId);
         return user.getRelayList().stream()
-                .filter(v -> v.getId() == relayId)
+                .filter(v -> v.getId().equals(relayId))
                 .findFirst();
     }
 }
