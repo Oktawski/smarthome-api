@@ -16,16 +16,8 @@ public class BasicResponse<T extends Object> {
         this.msg = msg;
     }
 
-    public T getObject() {
-        return t;
-    }
-
     public void setObject(T t) {
         this.t = t;
-    }
-
-    public String getMsg() {
-        return msg;
     }
 
     public void setMsg(String msg) {

@@ -1,6 +1,12 @@
 package com.oktawski.iotserver.light;
 
-import com.oktawski.iotserver.superclasses.IService;
+import com.oktawski.iotserver.jwt.JwtUtil;
+import com.oktawski.iotserver.responses.BasicResponse;
+import com.oktawski.iotserver.superclasses.WifiDevice;
+import com.oktawski.iotserver.user.UserRepository;
+import com.oktawski.iotserver.user.models.User;
+import com.oktawski.iotserver.utilities.ServiceHelper;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
@@ -8,68 +14,118 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LightService {
 
-    private final LightRepository repository;
+    private final LightRepository lightRepo;
+    private final UserRepository userRepo;
+    private final JwtUtil jwtUtil;
+    private final ServiceHelper serviceHelper;
 
     @Autowired
-    public LightService(@Qualifier("lightRepository") LightRepository repository){
-        this.repository = repository;
+    public LightService(@Qualifier("lightRepository") LightRepository lightRepo,
+                        @Qualifier("userRepository") UserRepository userRepo,
+                        JwtUtil jwtUtil,
+                        ServiceHelper serviceHelper){
+        this.lightRepo = lightRepo;
+        this.userRepo = userRepo;
+        this.jwtUtil = jwtUtil;
+        this.serviceHelper = serviceHelper;
     }
 
-    //TODO allow only unique ip to be added
-    public ResponseEntity<Light> add(Light light){
-        repository.save(light);
+    public ResponseEntity<List<Light>> getAll(String token){
+        String username = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        if(repository.exists(Example.of(light))){
-            return new ResponseEntity<>(light, HttpStatus.CREATED);
+        if(userOpt.isPresent()){
+            List<Light> lights = userOpt.get().getLightList().stream()
+                    .sorted(Comparator.comparing(Light::getId))
+                    .collect(Collectors.toList());
+
+            return new ResponseEntity<>(lights, HttpStatus.OK);
         }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<Light> getById(String token, Long id){
+        String username = jwtUtil.getUsername(token);
+
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        if(userOpt.isPresent()){
+            List<Light> lights = userOpt.get().getLightList();
+            return lights.stream()
+                    .filter(v -> v.getId().equals(id))
+                    .findFirst()
+                    .map(ResponseEntity::ok)
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        };
+
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    public ResponseEntity<Light> getByIp(String token, String ip){
+        String username = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        if(userOpt.isPresent()){
+            List<Light> lights = userOpt.get().getLightList();
+            return lights.stream()
+                    .filter(v -> v.getIp().equals(ip))
+                    .findFirst()
+                    .map(ResponseEntity::ok)
+                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+
+    public ResponseEntity<BasicResponse<?>> add(String token, Light light){
+        String username = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        BasicResponse<?> basicResponse = new BasicResponse<>();
+
+        userOpt.ifPresent(v -> {
+            List<Light> lights = userOpt.get().getLightList();
+            if(serviceHelper.isIpUnique(lights, light.getIp())){
+                basicResponse.setMsg("Ip taken, choose another");
+            }
+            else{
+                basicResponse.setMsg("Device added");
+            }
+        });
+
+        if(lightRepo.exists(Example.of(light))){
+            return new ResponseEntity<>(basicResponse, HttpStatus.CREATED);
+        }
+        return new ResponseEntity<>(basicResponse, HttpStatus.BAD_REQUEST);
     }
 
     //TODO create service superclass and implement some methods
     public ResponseEntity<Light> deleteById(Long id) {
-        Optional<Light> lightOptional = repository.findById(id);
+        Optional<Light> lightOptional = lightRepo.findById(id);
         if(lightOptional.isPresent()){
-            repository.delete(lightOptional.get());
-            if(!repository.exists(Example.of(lightOptional.get()))){
+            lightRepo.delete(lightOptional.get());
+            if(!lightRepo.exists(Example.of(lightOptional.get()))){
                 return new ResponseEntity<>(null, HttpStatus.OK);
             }
         }
         return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<List<Light>> getAll(){
-        List<Light> lights = repository.findAll();
-        if(!lights.isEmpty()){
-            return new ResponseEntity<>(lights, HttpStatus.FOUND);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
 
-    public ResponseEntity<Light> getById(Long id){
-        Optional<Light> lightOptional = repository.findById(id);
-        if(lightOptional.isPresent()){
-            return new ResponseEntity<>(lightOptional.get(), HttpStatus.FOUND);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
 
-    public ResponseEntity<Light> getByIp(String ip){
-        Light light = repository.findLightByIp(ip);
-        if(light != null){
-            return new ResponseEntity<>(light, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
+
 
     public ResponseEntity<Light> update(Long id, Light light) {
         Optional<Light> lightOptional =
-                repository.findById(id)
+                lightRepo.findById(id)
                 .map(v -> {
                     v.setIp(light.getIp());
                     v.setOn(light.getOn());
@@ -81,9 +137,9 @@ public class LightService {
                     return v;
                 });
 
-        repository.save(lightOptional.get());
+        lightRepo.save(lightOptional.get());
 
-        if(repository.exists(Example.of(lightOptional.get()))){
+        if(lightRepo.exists(Example.of(lightOptional.get()))){
             //todo send data to ESP-8266
             return new ResponseEntity<>(lightOptional.get(), HttpStatus.OK);
         }
@@ -91,7 +147,7 @@ public class LightService {
     }
 
     public ResponseEntity<Light> turnOnOf(Long id) {
-        Optional<Light> lightOpt = repository.findById(id);
+        Optional<Light> lightOpt = lightRepo.findById(id);
         if(lightOpt.isPresent()) {
             Light light = lightOpt.get();
             if (light.getOn()) {
@@ -109,7 +165,7 @@ public class LightService {
     }
 
     public void setColor(Long id, short red, short green, short blue, short intensity){
-        Optional<Light> optionalLight = repository.findById(id);
+        Optional<Light> optionalLight = lightRepo.findById(id);
 
         if(optionalLight.isPresent()){
             optionalLight.map(
@@ -128,7 +184,7 @@ public class LightService {
     }
 
     public void setColor(Long id, short intensity, short[] rgb){
-        Optional<Light> optionalLight = repository.findById(id);
+        Optional<Light> optionalLight = lightRepo.findById(id);
 
         if(optionalLight.isPresent()){
             optionalLight.map(
@@ -145,6 +201,4 @@ public class LightService {
 
         //TODO send data to ESP8266
     }
-
-
 }

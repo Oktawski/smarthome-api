@@ -1,6 +1,7 @@
 package com.oktawski.iotserver.user.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.oktawski.iotserver.light.Light;
 import com.oktawski.iotserver.relay.Relay;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,6 +38,10 @@ public class User implements UserDetails {
     @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Relay> relayList;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Light> lightList;
 
 
     private boolean isNonExpired = true;
@@ -110,6 +115,8 @@ public class User implements UserDetails {
     public List<Relay> getRelayList() {
         return relayList;
     }
+
+    public List<Light> getLightList(){return lightList;}
 
     public void setRelayList(List<Relay> relayList) {
         this.relayList = relayList;
