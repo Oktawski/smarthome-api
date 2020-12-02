@@ -48,7 +48,7 @@ public class LightController{
     @PostMapping("{id}/turn")
     public ResponseEntity<Light> turnOnOf(@RequestHeader(authHeader) String token,
                                           @PathVariable("id") Long id){
-        return service.turnOnOf(id);
+        return service.turnOnOf(token, id);
     }
 
     @PostMapping("{id}/color")
@@ -61,7 +61,7 @@ public class LightController{
     @PutMapping("{id}")
     public ResponseEntity<Light> update(@RequestHeader(authHeader) String token,
                                         @PathVariable("id") Long id, @RequestBody Light light){
-        return service.update(id, light);
+        return service.update(token, id, light);
     }
 
     @DeleteMapping("{id}")

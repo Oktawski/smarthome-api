@@ -2,11 +2,9 @@ package com.oktawski.iotserver.light;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
-import com.oktawski.iotserver.superclasses.WifiDevice;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
@@ -17,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,6 +97,8 @@ public class LightService {
             }
             else{
                 basicResponse.setMsg("Device added");
+                light.setUser(v);
+                lightRepo.save(light);
             }
         });
 
@@ -107,61 +108,43 @@ public class LightService {
         return new ResponseEntity<>(basicResponse, HttpStatus.BAD_REQUEST);
     }
 
-    //TODO create service superclass and implement some methods
-    public ResponseEntity<Light> deleteById(Long id) {
-        Optional<Light> lightOptional = lightRepo.findById(id);
-        if(lightOptional.isPresent()){
-            lightRepo.delete(lightOptional.get());
-            if(!lightRepo.exists(Example.of(lightOptional.get()))){
-                return new ResponseEntity<>(null, HttpStatus.OK);
-            }
+    /*TODO find out if getting device is faster from database and comparing it's user_id with user_id from user database
+        or getting whole devices list from user and finding device by id
+     */
+    //TODO test this
+    public ResponseEntity<Light> turnOnOf(String token, Long id) {
+
+        AtomicReference<HttpStatus> httpStatus = null;
+
+        String username = jwtUtil.getUsername(token);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        if(userOpt.isPresent()){
+            Optional<Light> lightOpt = userOpt.get().getLightList().stream()
+                    .filter(v -> v.getId().equals(id))
+                    .findFirst();
+
+            lightOpt.ifPresent(v -> {
+                if(v.getOn()){
+                    //TODO send data to ESP-8266 to turn of light
+                }
+                else{
+                    //TODO send data to ESP-8266 to turn on light
+                }
+
+                v.turn();
+                update(id, v);
+
+                if(lightRepo.exists(Example.of(v))){
+                    httpStatus.set(HttpStatus.OK);
+                }
+                else{
+                    httpStatus.set(HttpStatus.BAD_REQUEST);
+                }
+            });
         }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
 
-
-
-
-
-    public ResponseEntity<Light> update(Long id, Light light) {
-        Optional<Light> lightOptional =
-                lightRepo.findById(id)
-                .map(v -> {
-                    v.setIp(light.getIp());
-                    v.setOn(light.getOn());
-                    v.setIntensity(light.getIntensity());
-                    v.setRed(light.getRed());
-                    v.setBlue(light.getBlue());
-                    v.setGreen(light.getGreen());
-                    v.setName(light.getName());
-                    return v;
-                });
-
-        lightRepo.save(lightOptional.get());
-
-        if(lightRepo.exists(Example.of(lightOptional.get()))){
-            //todo send data to ESP-8266
-            return new ResponseEntity<>(lightOptional.get(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-
-    public ResponseEntity<Light> turnOnOf(Long id) {
-        Optional<Light> lightOpt = lightRepo.findById(id);
-        if(lightOpt.isPresent()) {
-            Light light = lightOpt.get();
-            if (light.getOn()) {
-                //todo send data to ESP-8266 to turn of light
-                //ArduinoController turnOf(
-            } else {
-                //todo send data to ESP-8266 to turn on light
-            }
-            light.turn();
-            update(id, light);
-
-            return new ResponseEntity<>(null, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(null, httpStatus.get());
     }
 
     public void setColor(Long id, short red, short green, short blue, short intensity){
@@ -170,11 +153,11 @@ public class LightService {
         if(optionalLight.isPresent()){
             optionalLight.map(
                     light -> {
-                    light.setRed(red);
-                    light.setGreen(green);
-                    light.setBlue(blue);
-                    light.setIntensity(intensity);
-                    return light;
+                        light.setRed(red);
+                        light.setGreen(green);
+                        light.setBlue(blue);
+                        light.setIntensity(intensity);
+                        return light;
                     });
 
             update(id, optionalLight.get());
@@ -200,5 +183,46 @@ public class LightService {
         }
 
         //TODO send data to ESP8266
+    }
+
+    //TODO implement update
+    public ResponseEntity<Light> update(String token, Long id, Light light) {
+        Optional<Light> lightOptional =
+                lightRepo.findById(id)
+                        .map(v -> {
+                            v.setIp(light.getIp());
+                            v.setOn(light.getOn());
+                            v.setIntensity(light.getIntensity());
+                            v.setRed(light.getRed());
+                            v.setBlue(light.getBlue());
+                            v.setGreen(light.getGreen());
+                            v.setName(light.getName());
+                            return v;
+                        });
+
+        lightRepo.save(lightOptional.get());
+
+        if(lightRepo.exists(Example.of(lightOptional.get()))){
+            //todo send data to ESP-8266
+            return new ResponseEntity<>(lightOptional.get(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    }
+
+    //TODO implement update
+    private void update(Long id, Light light){
+
+    }
+
+    //TODO create service superclass and implement some methods
+    public ResponseEntity<Light> deleteById(Long id) {
+        Optional<Light> lightOptional = lightRepo.findById(id);
+        if(lightOptional.isPresent()){
+            lightRepo.delete(lightOptional.get());
+            if(!lightRepo.exists(Example.of(lightOptional.get()))){
+                return new ResponseEntity<>(null, HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 }
