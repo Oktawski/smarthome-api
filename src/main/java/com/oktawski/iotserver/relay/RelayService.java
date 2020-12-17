@@ -159,7 +159,7 @@ public class RelayService implements IService<Relay> {
         relayOpt.ifPresent(v -> {
             userOpt.ifPresent(b -> {
                 if(v.getUser().getId().equals(b.getId())){
-                    relayRepo.save(v);
+                    relayRepo.delete(v);
                 }
             });
         });

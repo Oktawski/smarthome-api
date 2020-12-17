@@ -15,6 +15,8 @@ public class RelayController implements IController<Relay> {
 
     private final RelayService service;
 
+    private final static String AUTH_HEADER = "Authorization";
+
     @Autowired
     public RelayController(RelayService service){
         this.service = service;
@@ -22,28 +24,28 @@ public class RelayController implements IController<Relay> {
 
     @GetMapping
     @Override
-    public ResponseEntity<List<Relay>> getAll(@RequestHeader("Authorization") String token)
+    public ResponseEntity<List<Relay>> getAll(@RequestHeader(AUTH_HEADER) String token)
     {
         return service.getAll(token);
     }
 
     @GetMapping("{id}")
     @Override
-    public ResponseEntity<Relay> getById(@RequestHeader("Authorization") String token,
+    public ResponseEntity<Relay> getById(@RequestHeader(AUTH_HEADER) String token,
                                          @PathVariable("id") Long relayId) {
         return service.getById(token, relayId);
     }
 
     @GetMapping("ip/{ip}")
     @Override
-    public ResponseEntity<Relay> getByIp(@RequestHeader("Authorization") String token,
+    public ResponseEntity<Relay> getByIp(@RequestHeader(AUTH_HEADER) String token,
                                          @PathVariable("ip") String relayIp) {
         return service.getByIp(token, relayIp);
     }
 
     @PostMapping
     @Override
-    public ResponseEntity<Relay> add(@RequestHeader("Authorization") String token,
+    public ResponseEntity<Relay> add(@RequestHeader(AUTH_HEADER) String token,
                                      @RequestBody Relay relay)
     {
         return service.add(token, relay);
@@ -51,14 +53,14 @@ public class RelayController implements IController<Relay> {
 
     @PostMapping("{id}/turn")
     @Override
-    public ResponseEntity<Relay> turnOnOf(@RequestHeader("Authorization") String token,
+    public ResponseEntity<Relay> turnOnOf(@RequestHeader(AUTH_HEADER) String token,
                                           @PathVariable("id") Long relayId) {
         return service.turnOnOf(token, relayId);
     }
 
     @PutMapping("{id}")
     @Override
-    public ResponseEntity<Relay> update(@RequestHeader("Authorization") String token,
+    public ResponseEntity<Relay> update(@RequestHeader(AUTH_HEADER) String token,
                                         @PathVariable("id") Long relayId,
                                         @RequestBody Relay relay) {
         return service.update(token, relayId, relay);
@@ -66,7 +68,7 @@ public class RelayController implements IController<Relay> {
 
     @DeleteMapping("{id}")
     @Override
-    public ResponseEntity<?> deleteById(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> deleteById(@RequestHeader(AUTH_HEADER) String token,
                                             @PathVariable("id") Long relayId) {
 
         return service.deleteById(token, relayId);
