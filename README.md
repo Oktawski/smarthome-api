@@ -9,6 +9,4 @@ Devices can be added, removed, edited and turned by user. Light's color and inte
 Security is implemented via JWT Token, each user is given token once logged in.\
 User is authenticated with each request and each user can modify only it's own devices.\
 
-In my other repository is Android application to communicate with this server
-
-(https://github.com/Oktawski/android-iot-app)
+In my other repository is Android application to communicate with this server: (https://github.com/Oktawski/android-iot-app)
