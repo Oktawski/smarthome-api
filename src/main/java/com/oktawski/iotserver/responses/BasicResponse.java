@@ -6,6 +6,8 @@ public class BasicResponse<T extends Object> {
 
     @JsonProperty("object")
     protected T t;
+
+    @JsonProperty("msg")
     protected String msg;
 
     public BasicResponse() {

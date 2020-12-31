@@ -1,6 +1,7 @@
 package com.oktawski.iotserver.relay;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
+import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
@@ -82,7 +83,7 @@ public class RelayService implements IService<Relay> {
 
     //TODO allow only relays with unique ip to be added
     @Override
-    public ResponseEntity<Relay> add(String token, Relay relay) {
+    public ResponseEntity<BasicResponse<Relay>> add(String token, Relay relay) {
 
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
@@ -93,10 +94,9 @@ public class RelayService implements IService<Relay> {
         });
 
         if(relayRepo.findOne(Example.of(relay)).isPresent()){
-            return new ResponseEntity<>(relay, HttpStatus.OK);
+            return new ResponseEntity<>(new BasicResponse<>(relay, "Relay added"), HttpStatus.OK);
         }
-
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new BasicResponse<>(null, "Relay could not be added"), HttpStatus.BAD_REQUEST);
     }
 
     @Override

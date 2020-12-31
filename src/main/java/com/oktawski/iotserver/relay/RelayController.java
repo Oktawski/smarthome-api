@@ -1,5 +1,6 @@
 package com.oktawski.iotserver.relay;
 
+import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-//TODO get userId or username from header and pass to service
 @Controller
 @RequestMapping("relays")
 public class RelayController implements IController<Relay> {
@@ -45,8 +45,8 @@ public class RelayController implements IController<Relay> {
 
     @PostMapping
     @Override
-    public ResponseEntity<Relay> add(@RequestHeader(AUTH_HEADER) String token,
-                                     @RequestBody Relay relay)
+    public ResponseEntity<BasicResponse<Relay>> add(@RequestHeader(AUTH_HEADER) String token,
+                                             @RequestBody Relay relay)
     {
         return service.add(token, relay);
     }
