@@ -1,6 +1,8 @@
 package com.oktawski.iotserver.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oktawski.iotserver.responses.UserResponse;
+import com.oktawski.iotserver.user.models.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -25,6 +28,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         setFilterProcessesUrl("/user/signin");
     }
 
+    //TODO make request readable multiple times
     @Override
     public Authentication attemptAuthentication(
             HttpServletRequest request,
@@ -51,7 +55,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain chain,
-            Authentication authResult) {
+            Authentication authResult) throws IOException, ServletException {
 
         String username = authResult.getName();
         System.out.println("AuthFilter username: " + username);
@@ -66,5 +70,10 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
                 .compact();
 
         response.addHeader("Authorization", "Bearer " + token);
+        response.addHeader("access-control-expose-headers", "Authorization");
+
+        response.getWriter().write(
+                "{\"" + "BearerToken" + "\":\"" + token + "\"}"
+        );
     }
 }

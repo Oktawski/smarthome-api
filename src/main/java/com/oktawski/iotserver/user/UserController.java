@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("user")
 public class UserController {
 
@@ -29,7 +30,7 @@ public class UserController {
     }
 
     @PostMapping("signin")
-    public ResponseEntity<UserResponse> signin(@RequestBody User user) {
+    public ResponseEntity<ResponseEntity<?>> signin(@RequestBody User user) {
         return service.signin(user);
     }
 
