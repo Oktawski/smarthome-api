@@ -5,6 +5,7 @@ import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
+import com.oktawski.iotserver.utilities.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,13 +26,17 @@ public class RelayService implements IService<Relay> {
     private final UserRepository userRepo;
     private final JwtUtil jwtUtil;
 
+    private final ServiceHelper serviceHelper;
+
     @Autowired
     public RelayService(@Qualifier("relayRepo") RelayRepository relayRepo,
                         @Qualifier("userRepo") UserRepository userRepo,
-                        JwtUtil jwtUtil){
+                        JwtUtil jwtUtil,
+                        ServiceHelper serviceHelper){
         this.relayRepo = relayRepo;
         this.userRepo = userRepo;
         this.jwtUtil = jwtUtil;
+        this.serviceHelper = serviceHelper;
     }
 
     @Override
@@ -81,22 +87,33 @@ public class RelayService implements IService<Relay> {
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
-    //TODO allow only relays with unique ip to be added
     @Override
     public ResponseEntity<BasicResponse<Relay>> add(String token, Relay relay) {
 
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
+        AtomicReference<HttpStatus> httpStatus = new AtomicReference<>();
+        BasicResponse<Relay> response = new BasicResponse<>();
+
         userOpt.ifPresent(v -> {
-            relay.setUser(v);
-            relayRepo.save(relay);
+            List<Relay> relays = userOpt.get().getRelayList();
+            if(!serviceHelper.isIpUnique(relays, relay.getIp())){
+                relay.setUser(v);
+                relayRepo.save(relay);
+
+                httpStatus.set(HttpStatus.OK);
+                response.setObject(relay);
+                response.setMsg("Relay added");
+            }
+            else{
+                httpStatus.set(HttpStatus.BAD_REQUEST);
+                response.setObject(null);
+                response.setMsg(String.format("Relay with ip: %s already exists", relay.getIp()));
+            }
         });
 
-        if(relayRepo.findOne(Example.of(relay)).isPresent()){
-            return new ResponseEntity<>(new BasicResponse<>(relay, "Relay added"), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(new BasicResponse<>(null, "Relay could not be added"), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(response, httpStatus.get());
     }
 
     @Override

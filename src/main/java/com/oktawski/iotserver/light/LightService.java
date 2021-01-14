@@ -111,7 +111,6 @@ public class LightService {
     /*TODO find out if getting device is faster from database and comparing it's user_id with user_id from user database
         or getting whole devices list from user and finding device by id
      */
-    //TODO test this
     public ResponseEntity<Light> turnOnOf(String token, Long id) {
 
         AtomicReference<HttpStatus> httpStatus = null;
