@@ -113,7 +113,7 @@ public class LightService {
      */
     public ResponseEntity<Light> turnOnOf(String token, Long id) {
 
-        AtomicReference<HttpStatus> httpStatus = null;
+        AtomicReference<HttpStatus> httpStatus = new AtomicReference<>();
 
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);

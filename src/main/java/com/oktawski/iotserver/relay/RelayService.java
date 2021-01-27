@@ -8,11 +8,21 @@ import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class RelayService implements IService<Relay> {
 
     private final RelayRepository relayRepo;
@@ -105,6 +116,8 @@ public class RelayService implements IService<Relay> {
                 httpStatus.set(HttpStatus.OK);
                 response.setObject(relay);
                 response.setMsg("Relay added");
+
+                turn(relay);
             }
             else{
                 httpStatus.set(HttpStatus.BAD_REQUEST);
@@ -159,6 +172,8 @@ public class RelayService implements IService<Relay> {
                 relay.turn();
                 relayRepo.save(relay);
 
+                turn(relay);
+
                 return new ResponseEntity<>(null, HttpStatus.OK);
             }
         }
@@ -193,5 +208,30 @@ public class RelayService implements IService<Relay> {
         return user.getRelayList().stream()
                 .filter(v -> v.getId().equals(relayId))
                 .findFirst();
+    }
+
+    // TODO test with ESP-01 module
+    @Async
+    protected void turn(Relay relay) {
+        try {
+            System.out.println("Turn starts");  //temp
+
+            String ip = relay.getIp();
+            byte[] data = relay.getOn().toString().getBytes(StandardCharsets.UTF_8);
+            Socket socket = new Socket(ip, 80);
+            OutputStream outputStream = socket.getOutputStream();
+            outputStream.write(data);
+
+            PrintWriter writer = new PrintWriter(outputStream, true);
+            writer.println(Arrays.toString(data));
+
+            System.out.println("Turn done");    //temp
+        }
+        catch (UnknownHostException e){
+            System.out.printf("Unknown IP: %s%n", e.getMessage());
+        }
+        catch (IOException e){
+            System.out.println(e.toString());
+        }
     }
 }
