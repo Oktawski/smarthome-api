@@ -77,7 +77,6 @@ public class RelayService implements IService<Relay> {
                     .findFirst()
                     .map(ResponseEntity::ok)    //if found return ResponseEntity<>(relay, OK)
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
@@ -86,6 +85,7 @@ public class RelayService implements IService<Relay> {
     public ResponseEntity<Relay> getByIp(String token, String relayIp) {
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
+
         if(userOpt.isPresent()){
             List<Relay> relays = userOpt.get().getRelayList();
             return relays.stream()
@@ -93,14 +93,12 @@ public class RelayService implements IService<Relay> {
                     .findFirst()
                     .map(ResponseEntity::ok)
                     .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @Override
     public ResponseEntity<BasicResponse<Relay>> add(String token, Relay relay) {
-
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 

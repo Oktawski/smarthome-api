@@ -28,13 +28,6 @@ public class JwtAuthProvider extends AbstractUserDetailsAuthenticationProvider {
             String username,
             UsernamePasswordAuthenticationToken authToken) throws AuthenticationException {
 
-/*        User user = jwtUtil.parseToken(authToken.toString());
-
-        if(user == null){
-            throw new RuntimeException("JWT token invalid");
-        }
-
-        return user;*/
         return null;
     }
 }
