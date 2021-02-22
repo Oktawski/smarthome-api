@@ -3,6 +3,8 @@ package com.oktawski.iotserver.user.models;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oktawski.iotserver.light.Light;
 import com.oktawski.iotserver.relay.Relay;
+import org.hibernate.ObjectNotFoundException;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -12,6 +14,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Entity
 @Table(name = "users")
@@ -78,6 +81,20 @@ public class User implements UserDetails {
         this.email = email;
         this.password = password;
         this.isEnabled = true;
+    }
+
+    public Relay getRelayById(Long id){
+        return this.relayList.stream()
+                .filter(v -> v.getId().equals(id))
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
+    }
+
+    public Relay getRelayByIp(String ip){
+        return this.relayList.stream()
+                .filter(v -> v.getIp().equals(ip))
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
     }
 
     public Long getId() {

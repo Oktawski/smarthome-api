@@ -6,6 +6,7 @@ import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
+import org.assertj.core.api.BDDAssertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -22,10 +23,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -55,14 +53,10 @@ public class RelayService implements IService<Relay> {
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        if(userOpt.isPresent()){
-            List<Relay> relays = userOpt.get().getRelayList().stream()
-                    .sorted(Comparator.comparing(Relay::getId))
-                    .collect(Collectors.toList());
-
+        return userOpt.map(v -> {
+            List<Relay> relays = v.getRelayList();
             return new ResponseEntity<>(relays, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
     }
 
     @Override
@@ -70,15 +64,14 @@ public class RelayService implements IService<Relay> {
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        if(userOpt.isPresent()){
-            List<Relay> relays = userOpt.get().getRelayList();
-            return relays.stream()
-                    .filter(v -> v.getId().equals(relayId))
-                    .findFirst()
-                    .map(ResponseEntity::ok)    //if found return ResponseEntity<>(relay, OK)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            return userOpt.map(v -> {
+                Relay relay = v.getRelayById(relayId);
+                return new ResponseEntity<>(relay, HttpStatus.OK);
+            }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
+        }catch(NoSuchElementException e){
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @Override
@@ -86,15 +79,14 @@ public class RelayService implements IService<Relay> {
         String username = jwtUtil.getUsername(token);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        if(userOpt.isPresent()){
-            List<Relay> relays = userOpt.get().getRelayList();
-            return relays.stream()
-                    .filter(v -> v.getIp().equals(relayIp))
-                    .findFirst()
-                    .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            return userOpt.map(v -> {
+                        Relay relay = v.getRelayByIp(relayIp);
+                        return new ResponseEntity<>(relay, HttpStatus.OK);
+            }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 
     @Override
@@ -185,6 +177,7 @@ public class RelayService implements IService<Relay> {
         String username = jwtUtil.getUsername(token);
         Optional<Relay> relayOpt = relayRepo.findById(relayId);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
+
 
         relayOpt.ifPresent(v -> {
             userOpt.ifPresent(b -> {
