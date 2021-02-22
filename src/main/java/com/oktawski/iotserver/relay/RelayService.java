@@ -54,7 +54,9 @@ public class RelayService implements IService<Relay> {
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         return userOpt.map(v -> {
-            List<Relay> relays = v.getRelayList();
+            List<Relay> relays = v.getRelayList().stream()
+                    .sorted(Comparator.comparing(Relay::getId))
+                    .collect(Collectors.toList());
             return new ResponseEntity<>(relays, HttpStatus.OK);
         }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
     }
@@ -107,7 +109,7 @@ public class RelayService implements IService<Relay> {
                 response.setObject(relay);
                 response.setMsg("Relay added");
 
-                turn(relay);
+                //turn(relay);
             }
             else{
                 httpStatus.set(HttpStatus.BAD_REQUEST);
@@ -153,14 +155,11 @@ public class RelayService implements IService<Relay> {
 
             if(relayOpt.isPresent()){
                 Relay relay = relayOpt.get();
-                if(relay.getOn()){
-                    //todo send data to ESP-8266 to turn of relay
-                }
-                else{
-                    //todo send data to ESP-8266 to turn on relay
-                }
+
                 relay.turn();
                 relayRepo.save(relay);
+
+                System.out.println("Turned relay");
 
                 turn(relay);
 
