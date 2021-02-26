@@ -2,6 +2,7 @@ package com.oktawski.iotserver.superclasses;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
+import javax.validation.constraints.NotNull;
 
 @MappedSuperclass
 public class WifiDevice {
@@ -9,6 +10,7 @@ public class WifiDevice {
     String name;
 
     @Column(name = "ip")
+    @NotNull
     String ip;
 
     @Column(name = "is_on")

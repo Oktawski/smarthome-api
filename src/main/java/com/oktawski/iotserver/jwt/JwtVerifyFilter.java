@@ -59,6 +59,7 @@ public class JwtVerifyFilter extends OncePerRequestFilter {
                         username, null, authoritySet);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
             }
             catch(JwtException e){
                 throw new IllegalStateException("Token cannot be trusted");

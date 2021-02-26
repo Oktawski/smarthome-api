@@ -15,6 +15,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -48,9 +49,37 @@ public class RelayService implements IService<Relay> {
         this.serviceHelper = serviceHelper;
     }
 
+
     @Override
-    public ResponseEntity<List<Relay>> getAll(String token) {
-        String username = jwtUtil.getUsername(token);
+    public BasicResponse<Relay> add(Relay relay) {
+        String username = getUsername();
+        System.out.println(username);
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        BasicResponse<Relay> response = new BasicResponse<>();
+
+        userOpt.ifPresent(v -> {
+            List<Relay> relays = userOpt.get().getRelayList();
+            if(!serviceHelper.isIpUnique(relays, relay.getIp())){
+                relay.setUser(v);
+                relayRepo.save(relay);
+
+                response.setObject(relay);
+                response.setMsg("Relay added");
+
+                //turn(relay);
+            }
+            else{
+                response.setObject(null);
+                response.setMsg(String.format("Relay with ip: %s already exists", relay.getIp()));
+            }
+        });
+        return response;
+    }
+
+    @Override
+    public ResponseEntity<List<Relay>> getAll() {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         return userOpt.map(v -> {
@@ -62,8 +91,8 @@ public class RelayService implements IService<Relay> {
     }
 
     @Override
-    public ResponseEntity<Relay> getById(String token, Long relayId) {
-        String username = jwtUtil.getUsername(token);
+    public ResponseEntity<Relay> getById(Long relayId) {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         try {
@@ -77,8 +106,8 @@ public class RelayService implements IService<Relay> {
     }
 
     @Override
-    public ResponseEntity<Relay> getByIp(String token, String relayIp) {
-        String username = jwtUtil.getUsername(token);
+    public ResponseEntity<Relay> getByIp(String relayIp) {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         try {
@@ -91,39 +120,11 @@ public class RelayService implements IService<Relay> {
         }
     }
 
-    @Override
-    public ResponseEntity<BasicResponse<Relay>> add(String token, Relay relay) {
-        String username = jwtUtil.getUsername(token);
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        AtomicReference<HttpStatus> httpStatus = new AtomicReference<>();
-        BasicResponse<Relay> response = new BasicResponse<>();
-
-        userOpt.ifPresent(v -> {
-            List<Relay> relays = userOpt.get().getRelayList();
-            if(!serviceHelper.isIpUnique(relays, relay.getIp())){
-                relay.setUser(v);
-                relayRepo.save(relay);
-
-                httpStatus.set(HttpStatus.OK);
-                response.setObject(relay);
-                response.setMsg("Relay added");
-
-                //turn(relay);
-            }
-            else{
-                httpStatus.set(HttpStatus.BAD_REQUEST);
-                response.setObject(null);
-                response.setMsg(String.format("Relay with ip: %s already exists", relay.getIp()));
-            }
-        });
-
-        return new ResponseEntity<>(response, httpStatus.get());
-    }
 
     @Override
-    public ResponseEntity<Relay> update(String token, Long relayId, Relay relay) {
-        String username = jwtUtil.getUsername(token);
+    public ResponseEntity<Relay> update(Long relayId, Relay relay) {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         if(userOpt.isPresent()) {
@@ -146,8 +147,8 @@ public class RelayService implements IService<Relay> {
     }
 
     @Override
-    public ResponseEntity<Relay> turnOnOf(String token, Long relayId) {
-        String username = jwtUtil.getUsername(token);
+    public ResponseEntity<Relay> turnOnOf(Long relayId) {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         if(userOpt.isPresent()){
@@ -172,8 +173,8 @@ public class RelayService implements IService<Relay> {
 
 
     @Override
-    public ResponseEntity<?> deleteById(String token, Long relayId) {
-        String username = jwtUtil.getUsername(token);
+    public ResponseEntity<?> deleteById(Long relayId) {
+        String username = getUsername();
         Optional<Relay> relayOpt = relayRepo.findById(relayId);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
@@ -223,5 +224,9 @@ public class RelayService implements IService<Relay> {
         catch (IOException e){
             System.out.println(e.toString());
         }
+    }
+
+    private String getUsername(){
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

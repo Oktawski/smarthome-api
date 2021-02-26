@@ -25,4 +25,12 @@ public class BasicResponse<T extends Object> {
     public void setMsg(String msg) {
         this.msg = msg;
     }
+
+    public T getT() {
+        return t;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
 }
