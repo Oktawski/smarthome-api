@@ -1,8 +1,6 @@
 package com.oktawski.iotserver.user;
 
-import com.oktawski.iotserver.responses.UserResponse;
 import com.oktawski.iotserver.user.models.User;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;

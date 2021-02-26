@@ -57,17 +57,12 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
 
+        // temp
         String username = authResult.getName();
         System.out.println("AuthFilter username: " + username);
+        // temp
 
-        //TODO export key to other class or app properties
-        String token = Jwts.builder()
-                .setSubject(authResult.getName())
-                .claim("authorities", authResult.getAuthorities())
-                .setIssuedAt(new Date())
-                .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(2)))
-                .signWith(Keys.hmacShaKeyFor("securesecuresecuresecuresecuresecure".getBytes()))
-                .compact();
+        String token = JwtUtil.createToken(authResult);
 
         response.addHeader("Authorization", "Bearer " + token);
         response.addHeader("access-control-expose-headers", "Authorization");
