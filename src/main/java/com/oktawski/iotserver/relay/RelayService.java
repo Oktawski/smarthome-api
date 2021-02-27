@@ -53,7 +53,6 @@ public class RelayService implements IService<Relay> {
     @Override
     public BasicResponse<Relay> add(Relay relay) {
         String username = getUsername();
-        System.out.println(username);
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         BasicResponse<Relay> response = new BasicResponse<>();
@@ -78,7 +77,27 @@ public class RelayService implements IService<Relay> {
     }
 
     @Override
-    public ResponseEntity<List<Relay>> getAll() {
+    public Optional<Relay> deleteById(Long relayId) {
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        Optional<Relay> relayOpt = relayRepo.findById(relayId);
+
+        relayOpt.ifPresent(relay -> {
+            userOpt.ifPresent(user -> {
+                if(relay.getUser().getId().equals(user.getId())){
+                    relayRepo.delete(relay);
+                }
+            });
+        });
+
+        if(relayRepo.findById(relayId).isEmpty()){
+            return Optional.empty();
+        }
+        return relayOpt;
+    }
+
+    @Override
+    public Optional<List<Relay>> getAll() {
         String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
@@ -86,119 +105,83 @@ public class RelayService implements IService<Relay> {
             List<Relay> relays = v.getRelayList().stream()
                     .sorted(Comparator.comparing(Relay::getId))
                     .collect(Collectors.toList());
-            return new ResponseEntity<>(relays, HttpStatus.OK);
-        }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
+            return Optional.of(relays);
+        }).orElse(Optional.empty());
     }
 
     @Override
-    public ResponseEntity<Relay> getById(Long relayId) {
+    public Optional<Relay> getById(Long id) {
         String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         try {
-            return userOpt.map(v -> {
-                Relay relay = v.getRelayById(relayId);
-                return new ResponseEntity<>(relay, HttpStatus.OK);
-            }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
-        }catch(NoSuchElementException e){
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return userOpt.map(v -> Optional.of(v.getRelayById(id)))
+                    .orElse(null);
+        }
+        catch(NoSuchElementException e){
+            return Optional.empty();
         }
     }
 
     @Override
-    public ResponseEntity<Relay> getByIp(String relayIp) {
+    public Optional<Relay>getByIp(String ip) {
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        return userOpt.map(v -> Optional.of(v.getRelayByIp(ip)))
+                .orElse(null);
+    }
+
+
+
+    @Override
+    public Optional<Relay> update(Long id, Relay relay) {
         String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
         try {
-            return userOpt.map(v -> {
-                        Relay relay = v.getRelayByIp(relayIp);
-                        return new ResponseEntity<>(relay, HttpStatus.OK);
-            }).orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-    }
-
-
-
-    @Override
-    public ResponseEntity<Relay> update(Long relayId, Relay relay) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-        if(userOpt.isPresent()) {
-            Optional<Relay> relayOpt = findRelay(relayId, userOpt.get().getId())
-                    .map(v -> {
-                        v.setName(relay.getName());
-                        v.setIp(relay.getIp());
-                        v.setOn(relay.getOn());
-                        return v;
-                    });
+            Optional<Relay> relayOpt = userOpt.map(v -> v.getRelayById(id));
+            relayOpt.map(v -> {
+                v.setName(relay.getName());
+                v.setIp(relay.getIp());
+                v.setOn(relay.getOn());
+                return v;
+            });
 
             relayOpt.ifPresent(relayRepo::save);
 
-            if(relayRepo.exists(Example.of(relayOpt.get()))){
-                return new ResponseEntity<>(relayOpt.get(), HttpStatus.OK);
+            if(relayRepo.existsById(id)){
+                return relayOpt;
             }
         }
+        catch(NoSuchElementException e){
+            return Optional.empty();
+        }
 
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        return Optional.empty();
     }
 
     @Override
-    public ResponseEntity<Relay> turnOnOf(Long relayId) {
+    public Optional<Relay> turnOnOf(Long relayId) {
         String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        if(userOpt.isPresent()){
-            Optional<Relay> relayOpt = findRelay(relayId, userOpt.get().getId());
-
-            if(relayOpt.isPresent()){
-                Relay relay = relayOpt.get();
-
-                relay.turn();
-                relayRepo.save(relay);
-
-                System.out.println("Turned relay");
-
-                turn(relay);
-
-                return new ResponseEntity<>(null, HttpStatus.OK);
-            }
-        }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-
-
-
-    @Override
-    public ResponseEntity<?> deleteById(Long relayId) {
-        String username = getUsername();
-        Optional<Relay> relayOpt = relayRepo.findById(relayId);
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-
-        relayOpt.ifPresent(v -> {
-            userOpt.ifPresent(b -> {
-                if(v.getUser().getId().equals(b.getId())){
-                    relayRepo.delete(v);
-                }
+        try {
+            Optional<Relay> relayOpt = userOpt.map(v -> v.getRelayById(relayId));
+            relayOpt.map(v -> {
+                v.turn();
+                relayRepo.save(v);
+                return v;
             });
-        });
 
-        if(relayRepo.findById(relayId).isEmpty()){
-            return new ResponseEntity<>("Relay  removed", HttpStatus.OK);
+            if (relayRepo.existsById(relayId)) {
+                turn(relayOpt.get());
+                return relayOpt;
+            }
+            return Optional.empty();
+        } catch (NoSuchElementException e) {
+            return Optional.empty();
         }
-
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-
-    private Optional<Relay> findRelay(Long relayId, Long userId){
-        User user = userRepo.getOne(userId);
-        return user.getRelayList().stream()
-                .filter(v -> v.getId().equals(relayId))
-                .findFirst();
     }
 
     // TODO test with ESP-01 module

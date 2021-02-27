@@ -1,16 +1,16 @@
 package com.oktawski.iotserver.superclasses;
 
 import com.oktawski.iotserver.responses.BasicResponse;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IService <T extends WifiDevice>{
     BasicResponse<T> add(T t);
-    ResponseEntity<?> deleteById(Long id);
-    ResponseEntity<List<T>> getAll();
-    ResponseEntity<T> getById(Long id);
-    ResponseEntity<T> getByIp(String ip);
-    ResponseEntity<T> update(Long id, T t);
-    ResponseEntity<T> turnOnOf(Long id);
+    Optional<T> deleteById(Long id);
+    Optional<List<T>> getAll();
+    Optional<T> getById(Long id);
+    Optional<T> getByIp(String ip);
+    Optional<T> update(Long id, T t);
+    Optional<T> turnOnOf(Long id);
 }
