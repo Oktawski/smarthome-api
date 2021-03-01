@@ -97,6 +97,20 @@ public class User implements UserDetails {
                 .orElseThrow(NoSuchElementException::new);
     }
 
+    public Light getLightById(Long id){
+        return this.lightList.stream()
+                .filter(v -> v.getId().equals(id))
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
+    }
+
+    public Light getLightByIp(String ip){
+        return this.lightList.stream()
+                .filter(v -> v.getIp().equals(ip))
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
+    }
+
     public Long getId() {
         return id;
     }

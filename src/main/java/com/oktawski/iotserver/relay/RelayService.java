@@ -6,16 +6,11 @@ import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
-import org.assertj.core.api.BDDAssertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.data.domain.Example;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -25,7 +20,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -185,7 +179,7 @@ public class RelayService implements IService<Relay> {
     }
 
     // TODO test with ESP-01 module
-    @Async
+/*    @Async
     protected void turn(Relay relay) {
         try {
             System.out.println("Turn starts");  //temp
@@ -207,9 +201,5 @@ public class RelayService implements IService<Relay> {
         catch (IOException e){
             System.out.println(e.toString());
         }
-    }
-
-    private String getUsername(){
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
+    }*/
 }

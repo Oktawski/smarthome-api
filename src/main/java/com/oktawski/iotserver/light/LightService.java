@@ -2,6 +2,7 @@ package com.oktawski.iotserver.light;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
+import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
@@ -14,12 +15,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
-public class LightService {
+public class LightService implements IService<Light> {
 
     private final LightRepository lightRepo;
     private final UserRepository userRepo;
@@ -37,113 +39,151 @@ public class LightService {
         this.serviceHelper = serviceHelper;
     }
 
-    public ResponseEntity<List<Light>> getAll(String token){
-        String username = jwtUtil.getUsername(token);
+
+    /*TODO find out if getting device is faster from database and comparing it's user_id with user_id from user database
+        or getting whole devices list from user and finding device by id in turnOnOff method
+     */
+
+    @Override
+    public BasicResponse<Light> add(Light light) {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
 
-        if(userOpt.isPresent()){
-            List<Light> lights = userOpt.get().getLightList().stream()
-                    .sorted(Comparator.comparing(Light::getId))
-                    .collect(Collectors.toList());
-
-            return new ResponseEntity<>(lights, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
-
-    public ResponseEntity<Light> getById(String token, Long id){
-        String username = jwtUtil.getUsername(token);
-
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-        if(userOpt.isPresent()){
-            List<Light> lights = userOpt.get().getLightList();
-            return lights.stream()
-                    .filter(v -> v.getId().equals(id))
-                    .findFirst()
-                    .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        };
-
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
-
-    public ResponseEntity<Light> getByIp(String token, String ip){
-        String username = jwtUtil.getUsername(token);
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-        if(userOpt.isPresent()){
-            List<Light> lights = userOpt.get().getLightList();
-            return lights.stream()
-                    .filter(v -> v.getIp().equals(ip))
-                    .findFirst()
-                    .map(ResponseEntity::ok)
-                    .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-        }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-    }
-
-
-    public ResponseEntity<BasicResponse<?>> add(String token, Light light){
-        String username = jwtUtil.getUsername(token);
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-
-        BasicResponse<?> basicResponse = new BasicResponse<>();
+        BasicResponse<Light> response = new BasicResponse<>();
 
         userOpt.ifPresent(v -> {
-            List<Light> lights = userOpt.get().getLightList();
-            if(serviceHelper.isIpUnique(lights, light.getIp())){
-                basicResponse.setMsg("Ip taken, choose another");
-            }
-            else{
-                basicResponse.setMsg("Device added");
+            List<Light> lights = v.getLightList();
+            if(!serviceHelper.isIpUnique(lights, light.getIp())){
                 light.setUser(v);
                 lightRepo.save(light);
+
+                response.setObject(light);
+                response.setMsg("Light added");
+            }
+
+            else{
+                response.setObject(null);
+                response.setMsg(String.format("Light with ip: %s already exists", light.getIp()));
             }
         });
 
-        if(lightRepo.exists(Example.of(light))){
-            return new ResponseEntity<>(basicResponse, HttpStatus.CREATED);
-        }
-        return new ResponseEntity<>(basicResponse, HttpStatus.BAD_REQUEST);
+        return response;
     }
 
-    /*TODO find out if getting device is faster from database and comparing it's user_id with user_id from user database
-        or getting whole devices list from user and finding device by id
-     */
-    public ResponseEntity<Light> turnOnOf(String token, Long id) {
-
-        AtomicReference<HttpStatus> httpStatus = new AtomicReference<>();
-
-        String username = jwtUtil.getUsername(token);
+    @Override
+    public Optional<Light> deleteById(Long id) {
+        String username = getUsername();
         Optional<User> userOpt = userRepo.findUserByUsername(username);
+        Optional<Light> lightOpt = lightRepo.findById(id);
 
-        if(userOpt.isPresent()){
-            Optional<Light> lightOpt = userOpt.get().getLightList().stream()
-                    .filter(v -> v.getId().equals(id))
-                    .findFirst();
-
-            lightOpt.ifPresent(v -> {
-                if(v.getOn()){
-                    //TODO send data to ESP-8266 to turn of light
-                }
-                else{
-                    //TODO send data to ESP-8266 to turn on light
-                }
-
-                v.turn();
-                update(id, v);
-
-                if(lightRepo.exists(Example.of(v))){
-                    httpStatus.set(HttpStatus.OK);
-                }
-                else{
-                    httpStatus.set(HttpStatus.BAD_REQUEST);
+        lightOpt.ifPresent(light -> {
+            userOpt.ifPresent(user -> {
+                if(light.getUser().equals(user)){
+                    lightRepo.delete(light);
                 }
             });
+        });
+
+        if(lightRepo.findById(id).isEmpty()){
+            return Optional.empty();
+        }
+        return lightOpt;
+    }
+
+    @Override
+    public Optional<List<Light>> getAll() {
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        return userOpt.map(v -> {
+            List<Light> lights = v.getLightList().stream()
+                    .sorted(Comparator.comparing(Light::getId))
+                    .collect(Collectors.toList());
+
+            return Optional.of(lights);
+        }).orElse(Optional.empty());
+    }
+
+    @Override
+    public Optional<Light> getById(Long id) {
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        try{
+            return userOpt.map(v -> Optional.of(v.getLightById(id)))
+                    .orElse(null);
+        }
+        catch(NoSuchElementException e){
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<Light> getByIp(String ip){
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        try{
+            return userOpt.map(v -> Optional.of(v.getLightByIp(ip)))
+                    .orElse(null);
+        }
+        catch(NoSuchElementException e){
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<Light> update(Long id, Light light) {
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        try{
+            Optional<Light> lightOpt = userOpt.map(v -> v.getLightById(id));
+            lightOpt.map(v -> {
+                v.setName(light.getName());
+                v.setIp(light.getIp());
+                v.setOn(light.getOn());
+                v.setRed(light.getRed());
+                v.setGreen(light.getGreen());
+                v.setBlue(light.getBlue());
+                v.setIntensity(light.getIntensity());
+                return v;
+            });
+
+            lightOpt.ifPresent(lightRepo::save);
+
+            if(lightRepo.existsById(id)){
+                return lightOpt;
+            }
+        }
+        catch(NoSuchElementException e){
+            return Optional.empty();
         }
 
-        return new ResponseEntity<>(null, httpStatus.get());
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Light> turnOnOf(Long id) {
+        String username = getUsername();
+        Optional<User> userOpt = userRepo.findUserByUsername(username);
+
+        try{
+            Optional<Light> lightOpt = userOpt.map(v -> v.getLightById(id));
+            lightOpt.map(v -> {
+                v.turn();
+                lightRepo.save(v);
+                return v;
+            });
+
+            if(lightRepo.existsById(id)){
+                turn(lightOpt.get());
+                return lightOpt;
+            }
+            return Optional.empty();
+        }catch(NoSuchElementException e){
+            return Optional.empty();
+        }
     }
 
     public void setColor(Long id, short red, short green, short blue, short intensity){
@@ -182,46 +222,5 @@ public class LightService {
         }
 
         //TODO send data to ESP8266
-    }
-
-    //TODO implement update
-    public ResponseEntity<Light> update(String token, Long id, Light light) {
-        Optional<Light> lightOptional =
-                lightRepo.findById(id)
-                        .map(v -> {
-                            v.setIp(light.getIp());
-                            v.setOn(light.getOn());
-                            v.setIntensity(light.getIntensity());
-                            v.setRed(light.getRed());
-                            v.setBlue(light.getBlue());
-                            v.setGreen(light.getGreen());
-                            v.setName(light.getName());
-                            return v;
-                        });
-
-        lightRepo.save(lightOptional.get());
-
-        if(lightRepo.exists(Example.of(lightOptional.get()))){
-            //todo send data to ESP-8266
-            return new ResponseEntity<>(lightOptional.get(), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-    }
-
-    //TODO implement update
-    private void update(Long id, Light light){
-
-    }
-
-    //TODO create service superclass and implement some methods
-    public ResponseEntity<Light> deleteById(Long id) {
-        Optional<Light> lightOptional = lightRepo.findById(id);
-        if(lightOptional.isPresent()){
-            lightRepo.delete(lightOptional.get());
-            if(!lightRepo.exists(Example.of(lightOptional.get()))){
-                return new ResponseEntity<>(null, HttpStatus.OK);
-            }
-        }
-        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 }
