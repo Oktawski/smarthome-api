@@ -46,10 +46,10 @@ public class LightService implements IService<Light> {
 
     @Override
     public BasicResponse<Light> add(Light light) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
-        BasicResponse<Light> response = new BasicResponse<>();
+        var response = new BasicResponse<Light>();
 
         userOpt.ifPresent(v -> {
             List<Light> lights = v.getLightList();
@@ -72,9 +72,9 @@ public class LightService implements IService<Light> {
 
     @Override
     public Optional<Light> deleteById(Long id) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-        Optional<Light> lightOpt = lightRepo.findById(id);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
+        var lightOpt = lightRepo.findById(id);
 
         lightOpt.ifPresent(light -> {
             userOpt.ifPresent(user -> {
@@ -92,11 +92,11 @@ public class LightService implements IService<Light> {
 
     @Override
     public Optional<List<Light>> getAll() {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         return userOpt.map(v -> {
-            List<Light> lights = v.getLightList().stream()
+            var lights = v.getLightList().stream()
                     .sorted(Comparator.comparing(Light::getId))
                     .collect(Collectors.toList());
 
@@ -106,8 +106,8 @@ public class LightService implements IService<Light> {
 
     @Override
     public Optional<Light> getById(Long id) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try{
             return userOpt.map(v -> Optional.of(v.getLightById(id)))
@@ -120,8 +120,8 @@ public class LightService implements IService<Light> {
 
     @Override
     public Optional<Light> getByIp(String ip){
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try{
             return userOpt.map(v -> Optional.of(v.getLightByIp(ip)))
@@ -134,11 +134,11 @@ public class LightService implements IService<Light> {
 
     @Override
     public Optional<Light> update(Long id, Light light) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try{
-            Optional<Light> lightOpt = userOpt.map(v -> v.getLightById(id));
+            var lightOpt = userOpt.map(v -> v.getLightById(id));
             lightOpt.map(v -> {
                 v.setName(light.getName());
                 v.setIp(light.getIp());
@@ -165,11 +165,11 @@ public class LightService implements IService<Light> {
 
     @Override
     public Optional<Light> turnOnOf(Long id) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try{
-            Optional<Light> lightOpt = userOpt.map(v -> v.getLightById(id));
+            var lightOpt = userOpt.map(v -> v.getLightById(id));
             lightOpt.map(v -> {
                 v.turn();
                 lightRepo.save(v);
@@ -187,7 +187,7 @@ public class LightService implements IService<Light> {
     }
 
     public void setColor(Long id, short red, short green, short blue, short intensity){
-        Optional<Light> optionalLight = lightRepo.findById(id);
+        var optionalLight = lightRepo.findById(id);
 
         if(optionalLight.isPresent()){
             optionalLight.map(
@@ -206,7 +206,7 @@ public class LightService implements IService<Light> {
     }
 
     public void setColor(Long id, short intensity, short[] rgb){
-        Optional<Light> optionalLight = lightRepo.findById(id);
+        var optionalLight = lightRepo.findById(id);
 
         if(optionalLight.isPresent()){
             optionalLight.map(

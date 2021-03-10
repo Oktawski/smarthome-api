@@ -18,23 +18,23 @@ import java.util.Date;
 public class JwtUtil {
 
     public String getUsername(String token){
-        String secret = SecurityConstants.SECRET;
+        var secret = SecurityConstants.SECRET;
 
-        String tok = token.replace("Bearer ", "");
+        var stripedToken = token.replace("Bearer ", "");
 
-        Claims claims = Jwts.parserBuilder()
+        var claims = Jwts.parserBuilder()
                 .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
                 .build()
-                .parseClaimsJws(tok)
+                .parseClaimsJws(stripedToken)
                 .getBody();
 
-        String username = claims.getSubject();
+        var username = claims.getSubject();
 
         return username;
     }
 
     public static String createToken(Authentication authentication){
-        String secret = SecurityConstants.SECRET;
+        var secret = SecurityConstants.SECRET;
 
         return Jwts.builder()
                 .setSubject(authentication.getName())

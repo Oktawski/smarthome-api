@@ -1,5 +1,6 @@
 package com.oktawski.iotserver.jwt;
 
+import com.oktawski.iotserver.security.SecurityConstants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
@@ -39,16 +40,15 @@ public class JwtVerifyFilter extends OncePerRequestFilter {
             }
 
             try{
-                String token = authorizationHeader.replace("Bearer ", "");
-                String secret = "securesecuresecuresecuresecuresecure";
+                var token = authorizationHeader.replace("Bearer ", "");
+                var secret = SecurityConstants.SECRET;
                 //TODO export key to other class or app properties
                 Jws<Claims> claimsJws = Jwts.parserBuilder()
                         .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
                         .build().parseClaimsJws(token);
 
-                Claims body = claimsJws.getBody();
-                String username = body.getSubject();
-                System.out.println("Username from JwtVerifyFilter " + username);
+                var body = claimsJws.getBody();
+                var username = body.getSubject();
                 List<Map<String, String>> authorities = (List<Map<String, String>>) body.get("authorities");
 
                 Set<SimpleGrantedAuthority> authoritySet = authorities.stream()

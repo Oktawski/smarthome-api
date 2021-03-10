@@ -46,13 +46,13 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public BasicResponse<Relay> add(Relay relay) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
-        BasicResponse<Relay> response = new BasicResponse<>();
+        var response = new BasicResponse<Relay>();
 
         userOpt.ifPresent(v -> {
-            List<Relay> relays = userOpt.get().getRelayList();
+            var relays = userOpt.get().getRelayList();
             if(!serviceHelper.isIpUnique(relays, relay.getIp())){
                 relay.setUser(v);
                 relayRepo.save(relay);
@@ -72,9 +72,9 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<Relay> deleteById(Long relayId) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
-        Optional<Relay> relayOpt = relayRepo.findById(relayId);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
+        var relayOpt = relayRepo.findById(relayId);
 
         relayOpt.ifPresent(relay -> {
             userOpt.ifPresent(user -> {
@@ -92,8 +92,8 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<List<Relay>> getAll() {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         return userOpt.map(v -> {
             List<Relay> relays = v.getRelayList().stream()
@@ -105,8 +105,8 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<Relay> getById(Long id) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try {
             return userOpt.map(v -> Optional.of(v.getRelayById(id)))
@@ -119,8 +119,8 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<Relay>getByIp(String ip) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         return userOpt.map(v -> Optional.of(v.getRelayByIp(ip)))
                 .orElse(null);
@@ -130,11 +130,11 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<Relay> update(Long id, Relay relay) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try {
-            Optional<Relay> relayOpt = userOpt.map(v -> v.getRelayById(id));
+            var relayOpt = userOpt.map(v -> v.getRelayById(id));
             relayOpt.map(v -> {
                 v.setName(relay.getName());
                 v.setIp(relay.getIp());
@@ -157,11 +157,11 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<Relay> turnOnOf(Long relayId) {
-        String username = getUsername();
-        Optional<User> userOpt = userRepo.findUserByUsername(username);
+        var username = getUsername();
+        var userOpt = userRepo.findUserByUsername(username);
 
         try {
-            Optional<Relay> relayOpt = userOpt.map(v -> v.getRelayById(relayId));
+            var relayOpt = userOpt.map(v -> v.getRelayById(relayId));
             relayOpt.map(v -> {
                 v.turn();
                 relayRepo.save(v);

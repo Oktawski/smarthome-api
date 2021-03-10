@@ -46,7 +46,7 @@ public class RelayController implements IController<Relay> {
     @GetMapping
     @Override
     public ResponseEntity<List<Relay>> getAll() {
-        Optional<List<Relay>> relays = service.getAll();
+        var relays = service.getAll();
 
         return relays.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
@@ -55,7 +55,7 @@ public class RelayController implements IController<Relay> {
     @GetMapping("{id}")
     @Override
     public ResponseEntity<Relay> getById(@PathVariable("id") Long id) {
-        Optional<Relay> relayOpt = service.getById(id);
+        var relayOpt = service.getById(id);
 
         return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
@@ -64,7 +64,7 @@ public class RelayController implements IController<Relay> {
     @GetMapping("ip/{ip}")
     @Override
     public ResponseEntity<Relay> getByIp(@PathVariable("ip") String ip) {
-        Optional<Relay> relayOpt = service.getByIp(ip);
+        var  relayOpt = service.getByIp(ip);
 
         return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
@@ -75,7 +75,7 @@ public class RelayController implements IController<Relay> {
     @Override
     public ResponseEntity<Relay> update(@PathVariable("id") Long relayId,
                                         @RequestBody @Valid Relay relay) {
-        Optional<Relay> relayOpt = service.update(relayId, relay);
+        var relayOpt = service.update(relayId, relay);
 
         return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
@@ -85,7 +85,7 @@ public class RelayController implements IController<Relay> {
     @PostMapping("{id}/turn")
     @Override
     public ResponseEntity<Relay> turnOnOf(@PathVariable("id") Long relayId) {
-        Optional<Relay> relayOpt = service.turnOnOf(relayId);
+        var relayOpt = service.turnOnOf(relayId);
 
         return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
