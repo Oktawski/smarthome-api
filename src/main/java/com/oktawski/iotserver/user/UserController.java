@@ -3,6 +3,7 @@ package com.oktawski.iotserver.user;
 import com.oktawski.iotserver.responses.UserResponse;
 import com.oktawski.iotserver.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
@@ -31,8 +32,9 @@ public class UserController {
     }
 
     @PostMapping("signin")
-    public ResponseEntity<ResponseEntity<?>> signin(@RequestBody User user) {
-        return service.signin(user);
+    public ResponseEntity<?> signin(@RequestBody User user) {
+        return service.signin(user).map(u -> new ResponseEntity<>("Welcome " + u.getUsername(), HttpStatus.OK))
+                .orElse(new ResponseEntity<>("User with provided credentials does not exist", HttpStatus.BAD_REQUEST));
     }
 
     @PostMapping("{user_id}/update")

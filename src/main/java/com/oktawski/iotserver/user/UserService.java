@@ -54,18 +54,13 @@ public class UserService implements UserDetailsService {
                 ("Something went wrong", HttpStatus.BAD_REQUEST);
     }
 
-    public ResponseEntity<ResponseEntity<?>> signin(User user){
-
+    public Optional<User> signin(User user){
         String encodedPassword = passwordEncoder.encode(user.getPassword());
 
         if(repository.existsByEmailAndPassword(user.getEmail(), encodedPassword)){
-            User loggedUser = repository.findByEmail(user.getEmail());
-            return new ResponseEntity
-                    ("OK", HttpStatus.OK);
+            return Optional.of(repository.findByEmail(user.getEmail()));
         }
-
-        return new ResponseEntity
-                ("Provided credentials do not match any user", HttpStatus.BAD_REQUEST);
+        return Optional.empty();
     }
 
     public ResponseEntity<?> update(Long userId, User user){
