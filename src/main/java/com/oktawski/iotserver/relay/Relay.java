@@ -10,31 +10,12 @@ import javax.persistence.*;
 @Table(name = "relays")
 public class Relay extends WifiDevice {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "relay_id")
-    Long id;
-
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user = null;
 
     public Relay(){}
-
-    public Relay(String name, String address, Boolean on){
-        super(name, address, on);
-    }
-
-    public Relay(String name, String address, Boolean on, User user){
-        super(name, address, on);
-        this.user = user;
-    }
-
-
-    public Long getId(){
-        return id;
-    }
 
     public User getUser() {
         return user;

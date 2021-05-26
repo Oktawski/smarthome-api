@@ -3,18 +3,12 @@ package com.oktawski.iotserver.light;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oktawski.iotserver.superclasses.WifiDevice;
 import com.oktawski.iotserver.user.models.User;
-import org.hibernate.annotations.JoinColumnOrFormula;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "lights")
 public class Light extends WifiDevice {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "light_id")
-    private Long id;
 
     private short red, green, blue, intensity;
 
@@ -36,10 +30,6 @@ public class Light extends WifiDevice {
         this.green = green;
         this.blue = blue;
         this.intensity = intensity;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public short getRed() {
@@ -72,10 +62,6 @@ public class Light extends WifiDevice {
 
     public void setIntensity(short intensity) {
         this.intensity = intensity;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public User getUser() {

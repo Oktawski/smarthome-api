@@ -1,20 +1,22 @@
 package com.oktawski.iotserver.superclasses;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @MappedSuperclass
 public class WifiDevice {
 
-    String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-    @Column(name = "ip")
+    private String name;
+
     @NotNull
-    String ip;
+    private String ip;
 
     @Column(name = "is_on")
-    Boolean on = false;
+    private Boolean on = false;
 
     public WifiDevice(){}
 
@@ -30,15 +32,11 @@ public class WifiDevice {
     }
 
     public void turn(){
-        on = getOn() ? false : true;
+        on = !getOn();
     }
 
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -47,6 +45,14 @@ public class WifiDevice {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public Boolean getOn() {
