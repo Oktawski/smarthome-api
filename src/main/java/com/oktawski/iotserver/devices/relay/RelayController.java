@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.relay;
+package com.oktawski.iotserver.devices.relay;
 
 import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IController;

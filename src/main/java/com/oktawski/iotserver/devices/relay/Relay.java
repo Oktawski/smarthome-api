@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.relay;
+package com.oktawski.iotserver.devices.relay;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oktawski.iotserver.superclasses.WifiDevice;

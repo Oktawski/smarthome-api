@@ -1,8 +1,8 @@
 package com.oktawski.iotserver.user.models;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.oktawski.iotserver.light.Light;
-import com.oktawski.iotserver.relay.Relay;
+import com.oktawski.iotserver.devices.light.Light;
+import com.oktawski.iotserver.devices.relay.Relay;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.core.GrantedAuthority;

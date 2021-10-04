@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.light;
+package com.oktawski.iotserver.devices.light;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oktawski.iotserver.superclasses.WifiDevice;

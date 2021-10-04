@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.light;
+package com.oktawski.iotserver.devices.light;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

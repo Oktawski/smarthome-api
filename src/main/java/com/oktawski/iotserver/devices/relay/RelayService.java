@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.relay;
+package com.oktawski.iotserver.devices.relay;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;

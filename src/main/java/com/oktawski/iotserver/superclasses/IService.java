@@ -1,6 +1,6 @@
 package com.oktawski.iotserver.superclasses;
 
-import com.oktawski.iotserver.relay.Relay;
+import com.oktawski.iotserver.devices.relay.Relay;
 import com.oktawski.iotserver.responses.BasicResponse;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.Async;

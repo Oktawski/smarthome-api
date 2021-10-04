@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.relay;
+package com.oktawski.iotserver.devices.relay;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

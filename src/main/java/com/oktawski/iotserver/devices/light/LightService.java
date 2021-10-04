@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.light;
+package com.oktawski.iotserver.devices.light;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
