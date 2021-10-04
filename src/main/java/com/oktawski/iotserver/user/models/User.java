@@ -3,6 +3,7 @@ package com.oktawski.iotserver.user.models;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oktawski.iotserver.devices.light.Light;
 import com.oktawski.iotserver.devices.relay.Relay;
+import com.oktawski.iotserver.devices.thermometer.Thermometer;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,6 +46,10 @@ public class User implements UserDetails {
     @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Light> lightList;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Thermometer> thermometerList;
 
 
     private boolean isNonExpired = true;
@@ -111,6 +116,20 @@ public class User implements UserDetails {
                 .orElseThrow(NoSuchElementException::new);
     }
 
+    public Thermometer getThermometerById(Long id){
+        return this.thermometerList.stream()
+                .filter(v -> v.getId().equals(id))
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
+    }
+
+    public Thermometer getThermometerByIp(String ip){
+        return this.thermometerList.stream()
+                .filter(v -> v.getIp().equals(ip))
+                .findFirst()
+                .orElseThrow(NoSuchElementException::new);
+    }
+
     public Long getId() {
         return id;
     }
@@ -147,10 +166,24 @@ public class User implements UserDetails {
         return relayList;
     }
 
-    public List<Light> getLightList(){return lightList;}
+    public List<Thermometer> getThermometerList() {
+        return thermometerList;
+    }
+
+    public List<Light> getLightList(){
+        return lightList;
+    }
 
     public void setRelayList(List<Relay> relayList) {
         this.relayList = relayList;
+    }
+
+    public void setLightList(List<Light> lightList) {
+        this.lightList = lightList;
+    }
+
+    public void setThermometerList(List<Thermometer> thermometerList) {
+        this.thermometerList = thermometerList;
     }
 
 
