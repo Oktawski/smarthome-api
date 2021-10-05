@@ -1,8 +1,6 @@
 package com.oktawski.iotserver.devices.light;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oktawski.iotserver.superclasses.WifiDevice;
-import com.oktawski.iotserver.user.models.User;
 
 import javax.persistence.*;
 
@@ -11,11 +9,6 @@ import javax.persistence.*;
 public class Light extends WifiDevice {
 
     private short red, green, blue, intensity;
-
-    @JsonBackReference
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
-    private User user = null;
 
     public Light(){}
 
@@ -62,13 +55,5 @@ public class Light extends WifiDevice {
 
     public void setIntensity(short intensity) {
         this.intensity = intensity;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

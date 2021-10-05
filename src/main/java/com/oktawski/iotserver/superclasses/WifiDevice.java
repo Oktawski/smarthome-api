@@ -1,5 +1,7 @@
 package com.oktawski.iotserver.superclasses;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.oktawski.iotserver.user.models.User;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -11,6 +13,11 @@ public class WifiDevice {
     private Long id;
 
     private String name;
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user = null;
+
 
     @NotNull
     private String ip;
@@ -61,5 +68,12 @@ public class WifiDevice {
 
     public void setOn(Boolean on) {
         this.on = on;
+    }
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
