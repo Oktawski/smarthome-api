@@ -1,8 +1,6 @@
 package com.oktawski.iotserver.devices.thermometer;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.oktawski.iotserver.superclasses.WifiDevice;
-import com.oktawski.iotserver.user.models.User;
 
 import javax.persistence.*;
 
