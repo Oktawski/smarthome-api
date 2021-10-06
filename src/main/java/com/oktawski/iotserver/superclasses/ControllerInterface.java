@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 
-public interface IController  <T extends WifiDevice>{
+public interface ControllerInterface  <T extends WifiDevice>{
     ResponseEntity<BasicResponse<T>> add(T t);
     ResponseEntity<?> deleteById(Long id);
     ResponseEntity<List<T>> getAll();

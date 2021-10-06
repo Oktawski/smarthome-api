@@ -1,7 +1,6 @@
 package com.oktawski.iotserver.devices.thermometer;
 
 import com.oktawski.iotserver.responses.BasicResponse;
-import com.oktawski.iotserver.superclasses.IController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,10 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
+import com.oktawski.iotserver.superclasses.ControllerInterface;
 
 @Controller
 @RequestMapping("thermometers")
-public class ThermometerController implements IController<Thermometer> {
+public class ThermometerController implements ControllerInterface<Thermometer> {
 
     private final ThermometerService service;
 

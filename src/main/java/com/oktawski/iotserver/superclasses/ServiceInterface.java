@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public interface IService <T extends WifiDevice>{
+public interface ServiceInterface <T extends WifiDevice>{
     BasicResponse<T> add(T t);
     Optional<T> deleteById(Long id);
     Optional<List<T>> getAll();

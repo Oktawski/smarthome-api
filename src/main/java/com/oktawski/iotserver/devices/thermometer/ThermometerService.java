@@ -2,7 +2,6 @@ package com.oktawski.iotserver.devices.thermometer;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
-import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
@@ -21,10 +20,11 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.oktawski.iotserver.superclasses.ServiceInterface;
 
 @Service
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class ThermometerService implements IService<Thermometer> {
+public class ThermometerService implements ServiceInterface<Thermometer> {
 
     private final ThermometerRepository thermometerRepo;
     private final UserRepository userRepo;

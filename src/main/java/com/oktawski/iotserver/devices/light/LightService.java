@@ -2,7 +2,6 @@ package com.oktawski.iotserver.devices.light;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
-import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
@@ -19,9 +18,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import com.oktawski.iotserver.superclasses.ServiceInterface;
 
 @Service
-public class LightService implements IService<Light> {
+public class LightService implements ServiceInterface<Light> {
 
     private final LightRepository lightRepo;
     private final UserRepository userRepo;
