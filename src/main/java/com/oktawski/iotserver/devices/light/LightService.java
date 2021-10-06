@@ -164,14 +164,14 @@ public class LightService implements IService<Light> {
     }
 
     @Override
-    public Optional<Light> turnOnOf(Long id) {
+    public Optional<Light> turnOnOff(Long id) {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
         try{
             var lightOpt = userOpt.map(v -> v.getLightById(id));
             lightOpt.map(v -> {
-                v.turn();
+                v.turnOnOff();
                 lightRepo.save(v);
                 return v;
             });

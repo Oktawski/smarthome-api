@@ -13,5 +13,5 @@ public interface IController  <T extends WifiDevice>{
     ResponseEntity<T> getById(Long id);
     ResponseEntity<T> getByIp(String ip);
     ResponseEntity<T> update(Long id, T t);
-    ResponseEntity<T> turnOnOf(Long id);
+    ResponseEntity<T> turnOnOff(Long id);
 }

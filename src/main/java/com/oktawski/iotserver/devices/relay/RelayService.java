@@ -156,14 +156,14 @@ public class RelayService implements IService<Relay> {
     }
 
     @Override
-    public Optional<Relay> turnOnOf(Long relayId) {
+    public Optional<Relay> turnOnOff(Long relayId) {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
         try {
             var relayOpt = userOpt.map(v -> v.getRelayById(relayId));
             relayOpt.map(v -> {
-                v.turn();
+                v.turnOnOff();
                 relayRepo.save(v);
                 return v;
             });
@@ -180,7 +180,7 @@ public class RelayService implements IService<Relay> {
 
     // TODO test with ESP-01 module
 /*    @Async
-    protected void turn(Relay relay) {
+    protected void turnOnOff(Relay relay) {
         try {
             System.out.println("Turn starts");  //temp
 

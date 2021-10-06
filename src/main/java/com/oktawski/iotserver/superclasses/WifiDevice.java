@@ -38,7 +38,7 @@ public class WifiDevice {
         this.on = on;
     }
 
-    public void turn(){
+    public void turnOnOff(){
         on = !getOn();
     }
 
