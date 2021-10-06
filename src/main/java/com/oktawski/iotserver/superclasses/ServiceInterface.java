@@ -24,7 +24,7 @@ public interface ServiceInterface <T extends WifiDevice>{
     Optional<T> getById(Long id);
     Optional<T> getByIp(String ip);
     Optional<T> update(Long id, T t);
-    Optional<T> turnOnOf(Long id);
+    Optional<T> turnOnOff(Long id);
 
     default String getUsername(){
         return SecurityContextHolder.getContext().getAuthentication().getName();

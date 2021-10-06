@@ -84,8 +84,8 @@ public class ThermometerController implements ControllerInterface<Thermometer> {
 
     @PostMapping("{id}/turn")
     @Override
-    public ResponseEntity<Thermometer> turnOnOf(@PathVariable("id") Long thermometerId) {
-        var thermometerOpt = service.turnOnOf(thermometerId);
+    public ResponseEntity<Thermometer> turnOnOff(@PathVariable("id") Long thermometerId) {
+        var thermometerOpt = service.turnOnOff(thermometerId);
 
         return thermometerOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));

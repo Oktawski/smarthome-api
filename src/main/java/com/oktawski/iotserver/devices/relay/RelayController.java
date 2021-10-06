@@ -84,8 +84,8 @@ public class RelayController implements ControllerInterface<Relay> {
 
     @PostMapping("{id}/turn")
     @Override
-    public ResponseEntity<Relay> turnOnOf(@PathVariable("id") Long relayId) {
-        var relayOpt = service.turnOnOf(relayId);
+    public ResponseEntity<Relay> turnOnOff(@PathVariable("id") Long relayId) {
+        var relayOpt = service.turnOnOff(relayId);
 
         return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));

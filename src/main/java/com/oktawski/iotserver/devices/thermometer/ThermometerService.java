@@ -156,14 +156,14 @@ public class ThermometerService implements ServiceInterface<Thermometer> {
     }
 
     @Override
-    public Optional<Thermometer> turnOnOf(Long thermometerId) {
+    public Optional<Thermometer> turnOnOff(Long thermometerId) {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
         try {
             var thermometerOpt = userOpt.map(v -> v.getThermometerById(thermometerId));
             thermometerOpt.map(v -> {
-                v.turn();
+                v.turnOnOff();
                 thermometerRepo.save(v);
                 return v;
             });
@@ -180,7 +180,7 @@ public class ThermometerService implements ServiceInterface<Thermometer> {
 
     // TODO test with ESP-01 module
 /*    @Async
-    protected void turn(Thermometer thermometer) {
+    protected void turnOnOff(Thermometer thermometer) {
         try {
             System.out.println("Turn starts");  //temp
 
