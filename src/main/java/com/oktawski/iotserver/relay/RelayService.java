@@ -4,8 +4,12 @@ import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
-import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -14,11 +18,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.Socket;
+import java.io.OutputStreamWriter;
+import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -119,11 +121,13 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<Relay>getByIp(String ip) {
-        var username = getUsername();
+        /*var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
         return userOpt.map(v -> Optional.of(v.getRelayByIp(ip)))
-                .orElse(null);
+                .orElse(null);*/
+
+        return Optional.ofNullable(relayRepo.findRelayByIp(ip));
     }
 
 
@@ -178,28 +182,24 @@ public class RelayService implements IService<Relay> {
         }
     }
 
-    // TODO test with ESP-01 module
-/*    @Async
+    @Async
     protected void turn(Relay relay) {
         try {
-            System.out.println("Turn starts");  //temp
-
-            String ip = relay.getIp();
-            byte[] data = relay.getOn().toString().getBytes(StandardCharsets.UTF_8);
-            Socket socket = new Socket(ip, 80);
-            OutputStream outputStream = socket.getOutputStream();
-            outputStream.write(data);
-
-            PrintWriter writer = new PrintWriter(outputStream, true);
-            writer.println(Arrays.toString(data));
-
-            System.out.println("Turn done");    //temp
+            URL url = new URL("http://" + relay.getIp() + ":80/");
+            CloseableHttpClient client = HttpClientBuilder.create().build();
+            HttpPost request = new HttpPost(url.toString());
+            JSONObject json = new JSONObject();
+            json.put("on", relay.getOn());
+            StringEntity stringEntity = new StringEntity(json.toString());
+            request.setEntity(stringEntity);
+            request.addHeader("content-type", "application/json");
+            client.execute(request);
         }
         catch (UnknownHostException e){
             System.out.printf("Unknown IP: %s%n", e.getMessage());
         }
         catch (IOException e){
-            System.out.println(e.toString());
+            System.out.println(e);
         }
-    }*/
+    }
 }
