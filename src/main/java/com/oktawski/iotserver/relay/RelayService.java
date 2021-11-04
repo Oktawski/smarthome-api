@@ -45,6 +45,24 @@ public class RelayService implements IService<Relay> {
         this.serviceHelper = serviceHelper;
     }
 
+    public BasicResponse<Relay> initRelay(String mac, String ip) {
+        var relay = relayRepo.findRelayByMac(mac);
+        if(relay != null) {
+            relay.setIp(ip);
+            System.out.println("Relay exists");
+            System.out.println(relay.getMac());
+            return new BasicResponse<>(relay, "Relay exists");
+        } else {
+            var newRelay = new Relay();
+            newRelay.setMac(mac);
+            newRelay.setIp(ip);
+            System.out.println("New relay");
+            System.out.println(newRelay.getMac());
+            relayRepo.save(newRelay);
+            return new BasicResponse<>(newRelay, "New relay registered");
+        }
+
+    }
 
     @Override
     public BasicResponse<Relay> add(Relay relay) {
@@ -54,19 +72,16 @@ public class RelayService implements IService<Relay> {
         var response = new BasicResponse<Relay>();
 
         userOpt.ifPresent(v -> {
-            var relays = userOpt.get().getRelayList();
-            if(!serviceHelper.isIpUnique(relays, relay.getIp())){
-                relay.setUser(v);
-                relayRepo.save(relay);
-
-                response.setObject(relay);
+            var relayByMac = relayRepo.findRelayByMac(relay.getMac());
+            if (relayByMac != null) {
+                relayByMac.setUser(v);
+                relayByMac.setName(relay.getName());
+                relayRepo.save(relayByMac);
+                response.setObject(relayByMac);
                 response.setMsg("Relay added");
-
-                //turn(relay);
-            }
-            else{
+            } else {
                 response.setObject(null);
-                response.setMsg(String.format("Relay with ip: %s already exists", relay.getIp()));
+                response.setMsg("Relay with such MAC does not exist");
             }
         });
         return response;
@@ -81,14 +96,13 @@ public class RelayService implements IService<Relay> {
         relayOpt.ifPresent(relay -> {
             userOpt.ifPresent(user -> {
                 if(relay.getUser().getId().equals(user.getId())){
-                    relayRepo.delete(relay);
+                    relay.setUser(null);
+                    relayRepo.save(relay);
+                    //relayRepo.delete(relay);
                 }
             });
         });
 
-        if(relayRepo.findById(relayId).isEmpty()){
-            return Optional.empty();
-        }
         return relayOpt;
     }
 
@@ -119,6 +133,7 @@ public class RelayService implements IService<Relay> {
         }
     }
 
+    // Todo remove
     @Override
     public Optional<Relay>getByIp(String ip) {
         /*var username = getUsername();
@@ -141,7 +156,7 @@ public class RelayService implements IService<Relay> {
             var relayOpt = userOpt.map(v -> v.getRelayById(id));
             relayOpt.map(v -> {
                 v.setName(relay.getName());
-                v.setIp(relay.getIp());
+                //v.setIp(relay.getIp());
                 v.setOn(relay.getOn());
                 return v;
             });

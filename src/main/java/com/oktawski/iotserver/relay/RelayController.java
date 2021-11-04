@@ -2,6 +2,7 @@ package com.oktawski.iotserver.relay;
 
 import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IController;
+import com.oktawski.iotserver.utilities.InitRelayRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,15 @@ public class RelayController implements IController<Relay> {
         this.service = service;
     }
 
+    @PostMapping("init")
+    public ResponseEntity<BasicResponse<Relay>> initRelay(@RequestBody InitRelayRequest request) {
+        BasicResponse<Relay> response = service.initRelay(request.mac, request.ip);
+        if (response.getT() == null) {
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @PostMapping
     @Override
     public ResponseEntity<BasicResponse<Relay>> add(@RequestBody @Valid Relay relay) {
@@ -39,8 +49,8 @@ public class RelayController implements IController<Relay> {
     public ResponseEntity<?> deleteById(@PathVariable("id") Long id) {
         Optional<Relay> relayOpt = service.deleteById(id);
 
-        return relayOpt.map(v -> new ResponseEntity<>("Could not remove relay", HttpStatus.BAD_REQUEST))
-                .orElse(new ResponseEntity<>("Relay removed", HttpStatus.OK));
+        return relayOpt.map(v -> new ResponseEntity<>("Relay removed", HttpStatus.OK))
+                .orElse(new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST));
     }
 
     @GetMapping
@@ -61,6 +71,7 @@ public class RelayController implements IController<Relay> {
                 .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
+    // Todo remove
     @GetMapping("ip/{ip}")
     @Override
     public ResponseEntity<Relay> getByIp(@PathVariable("ip") String ip) {

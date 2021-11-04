@@ -39,7 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors()
                 .and()
                 .authorizeRequests()
-                .antMatchers("/server", "/user/**").permitAll()
+                .antMatchers("/server", "/user/**", "/relays/init/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JwtAuthFilter(authenticationManager()))
@@ -47,10 +47,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
-    @Override
+    /*@Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/relays/ip/**");
-    }
+        //web.ignoring().antMatchers("/relays/ip/**");
+        web.ignoring().antMatchers("/relays/init/**");
+    }*/
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {

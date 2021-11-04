@@ -39,7 +39,7 @@ public class User implements UserDetails {
     private String password;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Relay> relayList;
 
     @JsonManagedReference

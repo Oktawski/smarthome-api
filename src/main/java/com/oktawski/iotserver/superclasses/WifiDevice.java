@@ -12,8 +12,10 @@ public class WifiDevice {
 
     private String name;
 
-    @NotNull
     private String ip;
+
+    @NotNull
+    private String mac;
 
     @Column(name = "is_on")
     private Boolean on = false;
@@ -53,6 +55,14 @@ public class WifiDevice {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
     }
 
     public Boolean getOn() {
