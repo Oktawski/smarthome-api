@@ -3,8 +3,9 @@ package com.oktawski.iotserver.user.models;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.oktawski.iotserver.light.Light;
 import com.oktawski.iotserver.relay.Relay;
-import org.hibernate.ObjectNotFoundException;
-import org.springframework.data.crossstore.ChangeSetPersister;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -14,8 +15,8 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.List;
-import java.util.NoSuchElementException;
 
+@Getter @Setter @NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
@@ -43,7 +44,7 @@ public class User implements UserDetails {
     private List<Relay> relayList;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private List<Light> lightList;
 
 
@@ -56,8 +57,6 @@ public class User implements UserDetails {
     private boolean isCredentialsNonExpired = true;
 
 
-    public User(){}
-
     public User(
             @NotBlank @Size(max = 20) String username,
             @NotBlank @Email String email,
@@ -67,7 +66,6 @@ public class User implements UserDetails {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.isEnabled = true;
     }
 
     public User(
@@ -80,79 +78,7 @@ public class User implements UserDetails {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.isEnabled = true;
     }
-
-    public Relay getRelayById(Long id){
-        return this.relayList.stream()
-                .filter(v -> v.getId().equals(id))
-                .findFirst()
-                .orElseThrow(NoSuchElementException::new);
-    }
-
-    public Relay getRelayByIp(String ip){
-        return this.relayList.stream()
-                .filter(v -> v.getIp().equals(ip))
-                .findFirst()
-                .orElseThrow(NoSuchElementException::new);
-    }
-
-    public Light getLightById(Long id){
-        return this.lightList.stream()
-                .filter(v -> v.getId().equals(id))
-                .findFirst()
-                .orElseThrow(NoSuchElementException::new);
-    }
-
-    public Light getLightByIp(String ip){
-        return this.lightList.stream()
-                .filter(v -> v.getIp().equals(ip))
-                .findFirst()
-                .orElseThrow(NoSuchElementException::new);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public List<Relay> getRelayList() {
-        return relayList;
-    }
-
-    public List<Light> getLightList(){return lightList;}
-
-    public void setRelayList(List<Relay> relayList) {
-        this.relayList = relayList;
-    }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -27,7 +27,7 @@ public class RelayController implements IController<Relay> {
     @PostMapping("init")
     public ResponseEntity<BasicResponse<Relay>> initRelay(@RequestBody InitRelayRequest request) {
         BasicResponse<Relay> response = service.initRelay(request.mac, request.ip);
-        if (response.getT() == null) {
+        if (response.getObject() == null) {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -38,10 +38,10 @@ public class RelayController implements IController<Relay> {
     public ResponseEntity<BasicResponse<Relay>> add(@RequestBody @Valid Relay relay) {
         BasicResponse<Relay> response = service.add(relay);
 
-        if (response.getT() == null) {
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        if (response.getObject() != null) {
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @DeleteMapping("{id}")
@@ -70,17 +70,6 @@ public class RelayController implements IController<Relay> {
         return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
-
-    // Todo remove
-    @GetMapping("ip/{ip}")
-    @Override
-    public ResponseEntity<Relay> getByIp(@PathVariable("ip") String ip) {
-        var  relayOpt = service.getByIp(ip);
-
-        return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
-    }
-
 
     @PutMapping("{id}")
     @Override

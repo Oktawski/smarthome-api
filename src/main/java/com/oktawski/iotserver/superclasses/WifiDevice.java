@@ -1,8 +1,13 @@
 package com.oktawski.iotserver.superclasses;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+@Getter @Setter @NoArgsConstructor
 @MappedSuperclass
 public class WifiDevice {
 
@@ -20,7 +25,6 @@ public class WifiDevice {
     @Column(name = "is_on")
     private Boolean on = false;
 
-    public WifiDevice(){}
 
     public WifiDevice(String name, String ip){
         this.name = name;
@@ -34,42 +38,6 @@ public class WifiDevice {
     }
 
     public void turn(){
-        on = !getOn();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public String getMac() {
-        return mac;
-    }
-
-    public void setMac(String mac) {
-        this.mac = mac;
-    }
-
-    public Boolean getOn() {
-        return on;
-    }
-
-    public void setOn(Boolean on) {
-        this.on = on;
+        on = !on;
     }
 }

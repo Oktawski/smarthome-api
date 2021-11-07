@@ -24,21 +24,26 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAll(){return service.all();}
+    public ResponseEntity<List<User>> getAll() {
+        return service.all();
+    }
 
     @PostMapping("signup")
-    public ResponseEntity<UserResponse> signup(@RequestBody User user){
+    public ResponseEntity<UserResponse> signup(@RequestBody User user) {
         return service.signup(user);
     }
 
     @PostMapping("signin")
     public ResponseEntity<?> signin(@RequestBody User user) {
-        return service.signin(user).map(u -> new ResponseEntity<>("Welcome " + u.getUsername(), HttpStatus.OK))
-                .orElse(new ResponseEntity<>("User with provided credentials does not exist", HttpStatus.BAD_REQUEST));
+        return service.signin(user)
+                .map(u -> new ResponseEntity<>("Welcome " + u.getUsername(), HttpStatus.OK))
+                .orElse(new ResponseEntity<>(
+                        "User with provided credentials does not exist", HttpStatus.BAD_REQUEST
+                ));
     }
 
     @PostMapping("{user_id}/update")
-    public ResponseEntity<?> update(@PathVariable("user_id") Long user_id, @RequestBody User user){
+    public ResponseEntity<?> update(@PathVariable("user_id") Long user_id, @RequestBody User user) {
         return service.update(user_id, user);
     }
 }

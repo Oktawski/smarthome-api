@@ -22,7 +22,6 @@ public interface IService <T extends WifiDevice>{
     Optional<T> deleteById(Long id);
     Optional<List<T>> getAll();
     Optional<T> getById(Long id);
-    Optional<T> getByIp(String ip);
     Optional<T> update(Long id, T t);
     Optional<T> turnOnOf(Long id);
 
@@ -30,27 +29,4 @@ public interface IService <T extends WifiDevice>{
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    @Async
-    default void turn(WifiDevice relay) {
-        try {
-            System.out.println("Turn starts");  //temp
-
-            String ip = relay.getIp();
-            byte[] data = relay.getOn().toString().getBytes(StandardCharsets.UTF_8);
-            Socket socket = new Socket(ip, 80);
-            OutputStream outputStream = socket.getOutputStream();
-            outputStream.write(data);
-
-            PrintWriter writer = new PrintWriter(outputStream, true);
-            writer.println(Arrays.toString(data));
-
-            System.out.println("Turn done");    //temp
-        }
-        catch (UnknownHostException e){
-            System.out.printf("Unknown IP: %s%n", e.getMessage());
-        }
-        catch (IOException e){
-            System.out.println(e.toString());
-        }
-    }
 }

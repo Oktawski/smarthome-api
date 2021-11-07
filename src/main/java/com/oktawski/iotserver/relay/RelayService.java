@@ -14,15 +14,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.data.domain.Example;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.net.NoRouteToHostException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.empty;
 
 @Service
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
@@ -35,8 +38,8 @@ public class RelayService implements IService<Relay> {
     private final ServiceHelper serviceHelper;
 
     @Autowired
-    public RelayService(@Qualifier("relayRepo") RelayRepository relayRepo,
-                        @Qualifier("userRepo") UserRepository userRepo,
+    public RelayService(@Qualifier("relayRepository") RelayRepository relayRepo,
+                        @Qualifier("userRepository") UserRepository userRepo,
                         JwtUtil jwtUtil,
                         ServiceHelper serviceHelper){
         this.relayRepo = relayRepo;
@@ -98,7 +101,6 @@ public class RelayService implements IService<Relay> {
                 if(relay.getUser().getId().equals(user.getId())){
                     relay.setUser(null);
                     relayRepo.save(relay);
-                    //relayRepo.delete(relay);
                 }
             });
         });
@@ -116,7 +118,7 @@ public class RelayService implements IService<Relay> {
                     .sorted(Comparator.comparing(Relay::getId))
                     .collect(Collectors.toList());
             return Optional.of(relays);
-        }).orElse(Optional.empty());
+        }).orElse(empty());
     }
 
     @Override
@@ -124,54 +126,23 @@ public class RelayService implements IService<Relay> {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
-        try {
-            return userOpt.map(v -> Optional.of(v.getRelayById(id)))
-                    .orElse(null);
-        }
-        catch(NoSuchElementException e){
-            return Optional.empty();
-        }
+        return userOpt.map(user -> getRelayByIdAndUserId(id, user.getId()))
+                .orElse(null);
     }
-
-    // Todo remove
-    @Override
-    public Optional<Relay>getByIp(String ip) {
-        /*var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
-
-        return userOpt.map(v -> Optional.of(v.getRelayByIp(ip)))
-                .orElse(null);*/
-
-        return Optional.ofNullable(relayRepo.findRelayByIp(ip));
-    }
-
-
 
     @Override
     public Optional<Relay> update(Long id, Relay relay) {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
-        try {
-            var relayOpt = userOpt.map(v -> v.getRelayById(id));
-            relayOpt.map(v -> {
-                v.setName(relay.getName());
-                //v.setIp(relay.getIp());
-                v.setOn(relay.getOn());
-                return v;
-            });
+        var relayOpt = userOpt.map(v -> getRelayByIdAndUserId(id, v.getId()).orElse(null));
+        relayOpt.ifPresent(relay1 -> {
+            relay1.setName(relay.getName());
+            relay1.setOn(relay.getOn());
+            relayRepo.save(relay1);
+        });
 
-            relayOpt.ifPresent(relayRepo::save);
-
-            if(relayRepo.existsById(id)){
-                return relayOpt;
-            }
-        }
-        catch(NoSuchElementException e){
-            return Optional.empty();
-        }
-
-        return Optional.empty();
+        return relayRepo.findOne(Example.of(relay));
     }
 
     @Override
@@ -179,22 +150,21 @@ public class RelayService implements IService<Relay> {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
-        try {
-            var relayOpt = userOpt.map(v -> v.getRelayById(relayId));
-            relayOpt.map(v -> {
+        return userOpt.map(user -> {
+            var relay = getRelayByIdAndUserId(relayId, user.getId());
+            return relay.map(v -> {
                 v.turn();
                 relayRepo.save(v);
+                turn(v);
                 return v;
-            });
+            }).orElse(null);
 
-            if (relayRepo.existsById(relayId)) {
-                turn(relayOpt.get());
-                return relayOpt;
-            }
-            return Optional.empty();
-        } catch (NoSuchElementException e) {
-            return Optional.empty();
-        }
+        });
+    }
+
+    private Optional<Relay> getRelayByIdAndUserId(Long relayId, Long userId) {
+        return relayRepo.findRelaysByUserId(userId)
+                .stream().filter(relay1 -> relay1.getId().equals(relayId)).findFirst();
     }
 
     @Async
@@ -210,11 +180,14 @@ public class RelayService implements IService<Relay> {
             request.addHeader("content-type", "application/json");
             client.execute(request);
         }
-        catch (UnknownHostException e){
+        catch (UnknownHostException e) {
             System.out.printf("Unknown IP: %s%n", e.getMessage());
         }
-        catch (IOException e){
-            System.out.println(e);
+        catch (NoRouteToHostException e) {
+            System.out.println(e.getMessage());
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
         }
     }
 }

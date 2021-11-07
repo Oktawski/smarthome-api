@@ -109,34 +109,14 @@ public class LightService implements IService<Light> {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
 
-        try{
-            return userOpt.map(v -> Optional.of(v.getLightById(id)))
-                    .orElse(null);
-        }
-        catch(NoSuchElementException e){
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public Optional<Light> getByIp(String ip){
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
-
-        try{
-            return userOpt.map(v -> Optional.of(v.getLightByIp(ip)))
-                    .orElse(null);
-        }
-        catch(NoSuchElementException e){
-            return Optional.empty();
-        }
+        return null;
     }
 
     @Override
     public Optional<Light> update(Long id, Light light) {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
-
+/*
         try{
             var lightOpt = userOpt.map(v -> v.getLightById(id));
             lightOpt.map(v -> {
@@ -155,19 +135,22 @@ public class LightService implements IService<Light> {
             if(lightRepo.existsById(id)){
                 return lightOpt;
             }
+            return null;
         }
         catch(NoSuchElementException e){
             return Optional.empty();
         }
 
-        return Optional.empty();
+        return Optional.empty();*/
+
+        return null;
     }
 
     @Override
     public Optional<Light> turnOnOf(Long id) {
         var username = getUsername();
         var userOpt = userRepo.findUserByUsername(username);
-
+/*
         try{
             var lightOpt = userOpt.map(v -> v.getLightById(id));
             lightOpt.map(v -> {
@@ -177,13 +160,14 @@ public class LightService implements IService<Light> {
             });
 
             if(lightRepo.existsById(id)){
-                turn(lightOpt.get());
+                //turn(lightOpt.get());
                 return lightOpt;
             }
             return Optional.empty();
         }catch(NoSuchElementException e){
             return Optional.empty();
-        }
+        }*/
+        return null;
     }
 
     public void setColor(Long id, short red, short green, short blue, short intensity){

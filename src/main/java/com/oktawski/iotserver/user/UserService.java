@@ -22,22 +22,22 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(@Qualifier("userRepo") UserRepository repository, PasswordEncoder passwordEncoder) {
+    public UserService(@Qualifier("userRepository") UserRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public ResponseEntity all(){
+    public ResponseEntity all() {
         return new ResponseEntity(repository.findAll(), HttpStatus.OK);
     }
 
-    public ResponseEntity signup(@Valid User user){
+    public ResponseEntity signup(@Valid User user) {
         if(repository.existsByEmail(user.getEmail())){
             return new ResponseEntity
                     ("Email taken", HttpStatus.BAD_REQUEST);
         }
 
-        if(repository.existsByUsername(user.getUsername())){
+        if(repository.existsByUsername(user.getUsername())) {
             return new ResponseEntity
                     ("Username taken", HttpStatus.BAD_REQUEST);
         }
@@ -45,7 +45,7 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         repository.save(user);
 
-        if(repository.exists(Example.of(user))){
+        if(repository.exists(Example.of(user))) {
             return new ResponseEntity
                     ("Account created", HttpStatus.OK);
         }
@@ -54,7 +54,7 @@ public class UserService implements UserDetailsService {
                 ("Something went wrong", HttpStatus.BAD_REQUEST);
     }
 
-    public Optional<User> signin(User user){
+    public Optional<User> signin(User user) {
         String encodedPassword = passwordEncoder.encode(user.getPassword());
 
         if(repository.existsByEmailAndPassword(user.getEmail(), encodedPassword)){
@@ -63,9 +63,10 @@ public class UserService implements UserDetailsService {
         return Optional.empty();
     }
 
-    public ResponseEntity<?> update(Long userId, User user){
+    public ResponseEntity<?> update(Long userId, User user) {
         Optional<User> userToUpdate = repository.findById(userId);
-        if(userToUpdate.isEmpty()){
+
+        if(userToUpdate.isEmpty()) {
             return new ResponseEntity<>("No such user", HttpStatus.BAD_REQUEST);
         }
 
