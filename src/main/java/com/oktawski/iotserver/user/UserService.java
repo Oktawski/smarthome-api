@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,18 +28,18 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public ResponseEntity all() {
-        return new ResponseEntity(repository.findAll(), HttpStatus.OK);
+    public ResponseEntity<List<User>> all() {
+        return new ResponseEntity<>(repository.findAll(), HttpStatus.OK);
     }
 
-    public ResponseEntity signup(@Valid User user) {
+    public ResponseEntity<String> signup(@Valid User user) {
         if(repository.existsByEmail(user.getEmail())){
-            return new ResponseEntity
+            return new ResponseEntity<>
                     ("Email taken", HttpStatus.BAD_REQUEST);
         }
 
         if(repository.existsByUsername(user.getUsername())) {
-            return new ResponseEntity
+            return new ResponseEntity<>
                     ("Username taken", HttpStatus.BAD_REQUEST);
         }
 
@@ -46,11 +47,11 @@ public class UserService implements UserDetailsService {
         repository.save(user);
 
         if(repository.exists(Example.of(user))) {
-            return new ResponseEntity
+            return new ResponseEntity<>
                     ("Account created", HttpStatus.OK);
         }
 
-        return new ResponseEntity
+        return new ResponseEntity<>
                 ("Something went wrong", HttpStatus.BAD_REQUEST);
     }
 
@@ -82,8 +83,6 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        //return repository.findUserByUsername(username)
-                //.orElseThrow(() -> new UsernameNotFoundException(String.format("Username %s not found", username)));
         var user = repository.getUserByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException(String.format("Username %s not found", username));
