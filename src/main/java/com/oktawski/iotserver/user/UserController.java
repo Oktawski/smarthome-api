@@ -29,7 +29,7 @@ public class UserController {
     }
 
     @PostMapping("signup")
-    public ResponseEntity<UserResponse> signup(@RequestBody User user) {
+    public ResponseEntity<String> signup(@RequestBody User user) {
         return service.signup(user);
     }
 
