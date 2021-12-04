@@ -12,6 +12,7 @@ interface RelayRepository extends JpaRepository<Relay, Long> {
 
     @Query("select relay from Relay relay where relay.mac = ?1")
     Relay findRelayByMac(String mac);
-
-    List<Relay> findRelaysByUserId(Long userId);
+    Optional<Relay> getRelayByIdAndUserId(Long relayId, Long userId);
+    Optional<List<Relay>> findRelaysByUserIdOrderById(Long userId);
+    Relay findRelayByIdAndUserId(Long id, Long userId);
 }

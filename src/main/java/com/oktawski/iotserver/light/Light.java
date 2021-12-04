@@ -14,7 +14,7 @@ import javax.persistence.*;
 @Table(name = "lights")
 public class Light extends WifiDevice {
 
-    private int red, green, blue, intensity;
+    private int red, green, blue, intensity = 0;
 
     @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)

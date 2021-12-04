@@ -2,29 +2,36 @@ package com.oktawski.iotserver.light;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
+import com.oktawski.iotserver.superclasses.DeviceService;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
-import com.oktawski.iotserver.user.models.User;
 import com.oktawski.iotserver.utilities.ServiceHelper;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Example;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Service
-public class LightService implements IService<Light> {
+public class LightService extends DeviceService<Light> implements IService<Light> {
 
-    private final LightRepository lightRepo;
-    private final UserRepository userRepo;
+    private final LightRepository lightRepository;
+    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final ServiceHelper serviceHelper;
 
@@ -33,145 +40,103 @@ public class LightService implements IService<Light> {
                         @Qualifier("userRepository") UserRepository userRepo,
                         JwtUtil jwtUtil,
                         ServiceHelper serviceHelper){
-        this.lightRepo = lightRepo;
-        this.userRepo = userRepo;
+        super(lightRepo);
+        this.lightRepository = lightRepo;
+        this.userRepository = userRepo;
         this.jwtUtil = jwtUtil;
         this.serviceHelper = serviceHelper;
     }
 
+    @Override
+    public BasicResponse<Light> initDevice(String mac, String ip) {
+        var light = lightRepository.findLightByMac(mac);
+        light = registerOrUpdateDevice(Objects.requireNonNullElseGet(light, Light::new), mac, ip);
 
-    /*TODO find out if getting device is faster from database and comparing it's user_id with user_id from user database
-        or getting whole devices list from user and finding device by id in turnOnOff method
-     */
+        System.out.println(light.getMac());
+        System.out.println(light.getIp());
+
+        return new BasicResponse<>(light, "Light registered");
+    }
 
     @Override
     public BasicResponse<Light> add(Light light) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
         var response = new BasicResponse<Light>();
 
-        userOpt.ifPresent(v -> {
-            List<Light> lights = v.getLightList();
-            if(!serviceHelper.isIpUnique(lights, light.getIp())){
-                light.setUser(v);
-                lightRepo.save(light);
-
-                response.setObject(light);
-                response.setMsg("Light added");
-            }
-
-            else{
-                response.setObject(null);
-                response.setMsg(String.format("Light with ip: %s already exists", light.getIp()));
-            }
-        });
+        var lightByMac = lightRepository.findLightByMac(light.getMac());
+        if (lightByMac != null) {
+            lightByMac.setUser(user);
+            lightByMac.setName(light.getName());
+            lightRepository.save(lightByMac);
+            response.setObject(lightByMac);
+            response.setMsg("Light added");
+        } else {
+            response.setObject(null);
+            response.setMsg("Light with such MAC does not exist");
+        }
 
         return response;
     }
 
     @Override
-    public Optional<Light> deleteById(Long id) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
-        var lightOpt = lightRepo.findById(id);
+    public Optional<Light> deleteByIdForUser(Long id) {
+        var user = getUser(userRepository);
+        var lightOpt = lightRepository.findById(id);
 
         lightOpt.ifPresent(light -> {
-            userOpt.ifPresent(user -> {
-                if(light.getUser().equals(user)){
-                    lightRepo.delete(light);
-                }
-            });
+            if (light.getUser().equals(user)) {
+                light.setUser(null);
+                lightRepository.save(light);
+            }
         });
 
-        if(lightRepo.findById(id).isEmpty()){
-            return Optional.empty();
-        }
         return lightOpt;
     }
 
     @Override
     public Optional<List<Light>> getAll() {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
-        return userOpt.map(v -> {
-            var lights = v.getLightList().stream()
-                    .sorted(Comparator.comparing(Light::getId))
-                    .collect(Collectors.toList());
-
-            return Optional.of(lights);
-        }).orElse(Optional.empty());
+        return lightRepository.findLightByUserIdOrderById(user.getId());
     }
 
     @Override
     public Optional<Light> getById(Long id) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
-        return null;
+        return lightRepository.findLightByIdAndUserId(id, user.getId());
     }
 
     @Override
     public Optional<Light> update(Long id, Light light) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
-/*
-        try{
-            var lightOpt = userOpt.map(v -> v.getLightById(id));
-            lightOpt.map(v -> {
-                v.setName(light.getName());
-                v.setIp(light.getIp());
-                v.setOn(light.getOn());
-                v.setRed(light.getRed());
-                v.setGreen(light.getGreen());
-                v.setBlue(light.getBlue());
-                v.setIntensity(light.getIntensity());
-                return v;
-            });
+        var user = getUser(userRepository);
 
-            lightOpt.ifPresent(lightRepo::save);
+        var lightOpt = lightRepository.findLightByIdAndUserId(id, user.getId());
+        lightOpt.ifPresent(mLight -> {
+            mLight.setName(light.getName());
+            mLight.setOn(light.getOn());
+            lightRepository.save(mLight);
+        });
 
-            if(lightRepo.existsById(id)){
-                return lightOpt;
-            }
-            return null;
-        }
-        catch(NoSuchElementException e){
-            return Optional.empty();
-        }
-
-        return Optional.empty();*/
-
-        return null;
+        return lightRepository.findOne(Example.of(light));
     }
 
     @Override
     public Optional<Light> turnOnOf(Long id) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
-/*
-        try{
-            var lightOpt = userOpt.map(v -> v.getLightById(id));
-            lightOpt.map(v -> {
-                v.turn();
-                lightRepo.save(v);
-                return v;
-            });
+        var user = getUser(userRepository);
 
-            if(lightRepo.existsById(id)){
-                //turn(lightOpt.get());
-                return lightOpt;
-            }
-            return Optional.empty();
-        }catch(NoSuchElementException e){
-            return Optional.empty();
-        }*/
-        return null;
+        var lightOpt = lightRepository.findLightByIdAndUserId(id, user.getId());
+        return lightOpt.map(light -> {
+            light.turn();
+            lightRepository.save(light);
+            turnDevice(light);
+            return light;
+        });
     }
 
-    public void setColor(Long id, short red, short green, short blue, short intensity){
-        var optionalLight = lightRepo.findById(id);
+    public void setColor(Long id, int red, int green, int blue, int intensity){
+        var optionalLight = lightRepository.findById(id);
 
         if(optionalLight.isPresent()){
             optionalLight.map(
@@ -189,8 +154,8 @@ public class LightService implements IService<Light> {
         //TODO send data to ESP8266
     }
 
-    public void setColor(Long id, short intensity, short[] rgb){
-        var optionalLight = lightRepo.findById(id);
+    public void setColor(Long id, short intensity, int[] rgb){
+        var optionalLight = lightRepository.findById(id);
 
         if(optionalLight.isPresent()){
             optionalLight.map(
@@ -206,5 +171,25 @@ public class LightService implements IService<Light> {
         }
 
         //TODO send data to ESP8266
+    }
+
+    @Async
+    private void changeLightsRequest(Light light) {
+        try {
+            URL url = new URL("http://" + light.getIp() + ":80");
+            CloseableHttpClient client = HttpClientBuilder.create().build();
+            HttpPost request = new HttpPost(url.toString());
+            JSONObject json = new JSONObject();
+            json.put("red", light.getRed());
+            json.put("green", light.getGreen());
+            json.put("blue", light.getBlue());
+            json.put("intensity", light.getIntensity());
+            StringEntity stringEntity = new StringEntity(json.toString());
+            request.setEntity(stringEntity);
+            request.addHeader("content-type", "application/json");
+            client.execute(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

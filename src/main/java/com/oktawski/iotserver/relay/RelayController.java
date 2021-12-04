@@ -2,7 +2,7 @@ package com.oktawski.iotserver.relay;
 
 import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.superclasses.IController;
-import com.oktawski.iotserver.utilities.InitRelayRequest;
+import com.oktawski.iotserver.utilities.InitDeviceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +25,8 @@ public class RelayController implements IController<Relay> {
     }
 
     @PostMapping("init")
-    public ResponseEntity<BasicResponse<Relay>> initRelay(@RequestBody InitRelayRequest request) {
-        BasicResponse<Relay> response = service.initRelay(request.mac, request.ip);
+    public ResponseEntity<BasicResponse<Relay>> initRelay(@RequestBody InitDeviceRequest request) {
+        BasicResponse<Relay> response = service.initDevice(request.mac, request.ip);
         if (response.getObject() == null) {
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
@@ -47,7 +47,7 @@ public class RelayController implements IController<Relay> {
     @DeleteMapping("{id}")
     @Override
     public ResponseEntity<?> deleteById(@PathVariable("id") Long id) {
-        Optional<Relay> relayOpt = service.deleteById(id);
+        Optional<Relay> relayOpt = service.deleteByIdForUser(id);
 
         return relayOpt.map(v -> new ResponseEntity<>("Relay removed", HttpStatus.OK))
                 .orElse(new ResponseEntity<>("Something went wrong", HttpStatus.BAD_REQUEST));
@@ -56,10 +56,10 @@ public class RelayController implements IController<Relay> {
     @GetMapping
     @Override
     public ResponseEntity<List<Relay>> getAll() {
-        var relays = service.getAll();
+        var relaysOpt = service.getAll();
 
-        return relays.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
+        return relaysOpt.map(relays -> new ResponseEntity<>(relays, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
     @GetMapping("{id}")
@@ -67,7 +67,7 @@ public class RelayController implements IController<Relay> {
     public ResponseEntity<Relay> getById(@PathVariable("id") Long id) {
         var relayOpt = service.getById(id);
 
-        return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
+        return relayOpt.map(mRelay -> new ResponseEntity<>(mRelay, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
     }
 
@@ -77,7 +77,7 @@ public class RelayController implements IController<Relay> {
                                         @RequestBody @Valid Relay relay) {
         var relayOpt = service.update(relayId, relay);
 
-        return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
+        return relayOpt.map(mRelay -> new ResponseEntity<>(mRelay, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
     }
 
@@ -87,7 +87,7 @@ public class RelayController implements IController<Relay> {
     public ResponseEntity<Relay> turnOnOf(@PathVariable("id") Long relayId) {
         var relayOpt = service.turnOnOf(relayId);
 
-        return relayOpt.map(v -> new ResponseEntity<>(v, HttpStatus.OK))
+        return relayOpt.map(mRelay -> new ResponseEntity<>(mRelay, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
     }
 }

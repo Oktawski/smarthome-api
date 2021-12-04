@@ -1,6 +1,6 @@
 package com.oktawski.iotserver.utilities;
 
-public class InitRelayRequest {
+public class InitDeviceRequest {
     public String mac;
     public String ip;
 }

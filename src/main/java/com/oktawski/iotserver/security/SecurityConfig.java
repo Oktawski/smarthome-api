@@ -36,7 +36,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors()
                 .and()
                 .authorizeRequests()
-                .antMatchers("/server", "/user/**", "/relays/init/**").permitAll()
+                .antMatchers("/server", "/user/**", "/relays/init/**", "/lights/init/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JwtAuthFilter(authenticationManager()))

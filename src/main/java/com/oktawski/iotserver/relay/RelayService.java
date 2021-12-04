@@ -2,6 +2,7 @@ package com.oktawski.iotserver.relay;
 
 import com.oktawski.iotserver.jwt.JwtUtil;
 import com.oktawski.iotserver.responses.BasicResponse;
+import com.oktawski.iotserver.superclasses.DeviceService;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.utilities.ServiceHelper;
@@ -16,93 +17,75 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.data.domain.Example;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.NoRouteToHostException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.empty;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class RelayService implements IService<Relay> {
+public class RelayService extends DeviceService<Relay> implements IService<Relay> {
 
-    private final RelayRepository relayRepo;
-    private final UserRepository userRepo;
+    private final RelayRepository relayRepository;
+    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
     private final ServiceHelper serviceHelper;
 
     @Autowired
-    public RelayService(@Qualifier("relayRepository") RelayRepository relayRepo,
-                        @Qualifier("userRepository") UserRepository userRepo,
+    public RelayService(@Qualifier("relayRepository") RelayRepository relayRepository,
+                        @Qualifier("userRepository") UserRepository userRepository,
                         JwtUtil jwtUtil,
                         ServiceHelper serviceHelper){
-        this.relayRepo = relayRepo;
-        this.userRepo = userRepo;
+        super(relayRepository);
+        this.relayRepository = relayRepository;
+        this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.serviceHelper = serviceHelper;
     }
 
-    public BasicResponse<Relay> initRelay(String mac, String ip) {
-        var relay = relayRepo.findRelayByMac(mac);
-        if(relay != null) {
-            relay.setIp(ip);
-            System.out.println("Relay exists");
-            System.out.println(relay.getMac());
-            return new BasicResponse<>(relay, "Relay exists");
-        } else {
-            var newRelay = new Relay();
-            newRelay.setMac(mac);
-            newRelay.setIp(ip);
-            System.out.println("New relay");
-            System.out.println(newRelay.getMac());
-            relayRepo.save(newRelay);
-            return new BasicResponse<>(newRelay, "New relay registered");
-        }
-
+    @Override
+    public BasicResponse<Relay> initDevice(String mac, String ip) {
+        var relay = relayRepository.findRelayByMac(mac);
+        relay = registerOrUpdateDevice(Objects.requireNonNullElseGet(relay, Relay::new), mac, ip);
+        return new BasicResponse<>(relay, "Relay registered");
     }
 
     @Override
     public BasicResponse<Relay> add(Relay relay) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
         var response = new BasicResponse<Relay>();
 
-        userOpt.ifPresent(v -> {
-            var relayByMac = relayRepo.findRelayByMac(relay.getMac());
-            if (relayByMac != null) {
-                relayByMac.setUser(v);
-                relayByMac.setName(relay.getName());
-                relayRepo.save(relayByMac);
-                response.setObject(relayByMac);
-                response.setMsg("Relay added");
-            } else {
-                response.setObject(null);
-                response.setMsg("Relay with such MAC does not exist");
-            }
-        });
+        var relayByMac = relayRepository.findRelayByMac(relay.getMac());
+        if (relayByMac != null) {
+            relayByMac.setUser(user);
+            relayByMac.setName(relay.getName());
+            relayRepository.save(relayByMac);
+            response.setObject(relayByMac);
+            response.setMsg("Relay added");
+        } else {
+            response.setObject(null);
+            response.setMsg("Relay with such MAC does not exist");
+        }
         return response;
     }
 
     @Override
-    public Optional<Relay> deleteById(Long relayId) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
-        var relayOpt = relayRepo.findById(relayId);
+    public Optional<Relay> deleteByIdForUser(Long relayId) {
+        var user = getUser(userRepository);
+        var relayOpt = relayRepository.findById(relayId);
 
         relayOpt.ifPresent(relay -> {
-            userOpt.ifPresent(user -> {
-                if(relay.getUser().getId().equals(user.getId())){
-                    relay.setUser(null);
-                    relayRepo.save(relay);
-                }
-            });
+            if (relay.getUser().getId().equals(user.getId())){
+                relay.setUser(null);
+                relayRepository.save(relay);
+            }
         });
 
         return relayOpt;
@@ -110,84 +93,42 @@ public class RelayService implements IService<Relay> {
 
     @Override
     public Optional<List<Relay>> getAll() {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
-        return userOpt.map(v -> {
-            List<Relay> relays = v.getRelayList().stream()
-                    .sorted(Comparator.comparing(Relay::getId))
-                    .collect(Collectors.toList());
-            return Optional.of(relays);
-        }).orElse(empty());
+        return relayRepository.findRelaysByUserIdOrderById(user.getId());
     }
 
     @Override
     public Optional<Relay> getById(Long id) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
-        return userOpt.map(user -> getRelayByIdAndUserId(id, user.getId()))
-                .orElse(null);
+        return relayRepository.getRelayByIdAndUserId(id, user.getId());
     }
 
     @Override
     public Optional<Relay> update(Long id, Relay relay) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
-        var relayOpt = userOpt.map(v -> getRelayByIdAndUserId(id, v.getId()).orElse(null));
+        var relayOpt = relayRepository.getRelayByIdAndUserId(id, user.getId());
         relayOpt.ifPresent(relay1 -> {
             relay1.setName(relay.getName());
             relay1.setOn(relay.getOn());
-            relayRepo.save(relay1);
+            relayRepository.save(relay1);
         });
 
-        return relayRepo.findOne(Example.of(relay));
+        return relayRepository.findOne(Example.of(relay));
     }
 
     @Override
     public Optional<Relay> turnOnOf(Long relayId) {
-        var username = getUsername();
-        var userOpt = userRepo.findUserByUsername(username);
+        var user = getUser(userRepository);
 
-        return userOpt.map(user -> {
-            var relay = getRelayByIdAndUserId(relayId, user.getId());
-            return relay.map(v -> {
-                v.turn();
-                relayRepo.save(v);
-                turn(v);
-                return v;
-            }).orElse(null);
-
+        var relayOpt = relayRepository.getRelayByIdAndUserId(relayId, user.getId());
+        return relayOpt.map(relay -> {
+            relay.turn();
+            relayRepository.save(relay);
+            turnDevice(relay);
+            return relay;
         });
-    }
-
-    private Optional<Relay> getRelayByIdAndUserId(Long relayId, Long userId) {
-        return relayRepo.findRelaysByUserId(userId)
-                .stream().filter(relay1 -> relay1.getId().equals(relayId)).findFirst();
-    }
-
-    @Async
-    protected void turn(Relay relay) {
-        try {
-            URL url = new URL("http://" + relay.getIp() + ":80/");
-            CloseableHttpClient client = HttpClientBuilder.create().build();
-            HttpPost request = new HttpPost(url.toString());
-            JSONObject json = new JSONObject();
-            json.put("on", relay.getOn());
-            StringEntity stringEntity = new StringEntity(json.toString());
-            request.setEntity(stringEntity);
-            request.addHeader("content-type", "application/json");
-            client.execute(request);
-        }
-        catch (UnknownHostException e) {
-            System.out.printf("Unknown IP: %s%n", e.getMessage());
-        }
-        catch (NoRouteToHostException e) {
-            System.out.println(e.getMessage());
-        }
-        catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
     }
 }
