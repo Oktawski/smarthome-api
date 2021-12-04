@@ -21,12 +21,11 @@ public class ServerController {
     }
 
     @GetMapping
-    public ResponseEntity<String> getStatus(){
+    public ResponseEntity<String> getStatus() {
         try {
-            String status = service.getStatus().orElseThrow(NotYetConnectedException::new);
+            String status = service.getStatus();
             return new ResponseEntity<>(status, HttpStatus.OK);
-        }
-        catch(NotYetConnectedException e){
+        } catch(NotYetConnectedException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
     }

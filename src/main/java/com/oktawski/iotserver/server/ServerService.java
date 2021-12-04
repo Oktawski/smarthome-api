@@ -8,7 +8,7 @@ import java.util.Optional;
 @Service
 public class ServerService {
 
-    public Optional<String> getStatus(){
-        return Optional.of("Server is up and running");
+    public String getStatus(){
+        return "Server is up and running";
     }
 }
