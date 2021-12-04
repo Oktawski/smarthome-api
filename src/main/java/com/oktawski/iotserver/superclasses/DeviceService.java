@@ -6,7 +6,7 @@ public class DeviceService <T extends WifiDevice> {
 
     private final JpaRepository<T, Long> repository;
 
-    public DeviceService(JpaRepository repository) {
+    public DeviceService(JpaRepository<T, Long> repository) {
         this.repository = repository;
     }
 

@@ -3,7 +3,6 @@ package com.oktawski.iotserver.superclasses;
 import com.oktawski.iotserver.responses.BasicResponse;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.user.models.User;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;

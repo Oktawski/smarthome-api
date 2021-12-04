@@ -6,7 +6,6 @@ import com.oktawski.iotserver.superclasses.DeviceService;
 import com.oktawski.iotserver.superclasses.IService;
 import com.oktawski.iotserver.user.UserRepository;
 import com.oktawski.iotserver.utilities.ServiceHelper;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -19,10 +18,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -138,43 +134,15 @@ public class LightService extends DeviceService<Light> implements IService<Light
     public void setColor(Long id, int red, int green, int blue, int intensity){
         var optionalLight = lightRepository.findById(id);
 
-        if(optionalLight.isPresent()){
-            optionalLight.map(
-                    light -> {
-                        light.setRed(red);
-                        light.setGreen(green);
-                        light.setBlue(blue);
-                        light.setIntensity(intensity);
-                        return light;
-                    });
-
-            update(id, optionalLight.get());
-        }
-
-        //TODO send data to ESP8266
-    }
-
-    public void setColor(Long id, short intensity, int[] rgb){
-        var optionalLight = lightRepository.findById(id);
-
-        if(optionalLight.isPresent()){
-            optionalLight.map(
-                    light -> {
-                        light.setRed(rgb[0]);
-                        light.setGreen(rgb[1]);
-                        light.setBlue(rgb[2]);
-                        light.setIntensity(intensity);
-                        return light;
-                    });
-
-            update(id, optionalLight.get());
-        }
-
-        //TODO send data to ESP8266
+        optionalLight.ifPresent(light -> {
+            light.setColorsAndIntensity(red, green, blue, intensity);
+            lightRepository.save(light);
+            changeLightsRequest(light);
+        });
     }
 
     @Async
-    private void changeLightsRequest(Light light) {
+    protected void changeLightsRequest(Light light) {
         try {
             URL url = new URL("http://" + light.getIp() + ":80");
             CloseableHttpClient client = HttpClientBuilder.create().build();

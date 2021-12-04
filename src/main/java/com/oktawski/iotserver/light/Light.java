@@ -33,4 +33,11 @@ public class Light extends WifiDevice {
         this.blue = blue;
         this.intensity = intensity;
     }
+
+    public void setColorsAndIntensity(int r, int g, int b, int intensity) {
+        this.red = r;
+        this.green = g;
+        this.blue = b;
+        this.intensity = intensity;
+    }
 }
