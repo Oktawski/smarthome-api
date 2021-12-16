@@ -26,14 +26,14 @@ public class WifiDevice {
     private Boolean on = false;
 
 
-    public WifiDevice(String name, String ip){
+    public WifiDevice(String name, String mac){
         this.name = name;
-        this.ip = ip;
+        this.mac = mac;
     }
 
-    public WifiDevice(String name, String ip, Boolean on){
+    public WifiDevice(String name, String mac, Boolean on){
         this.name = name;
-        this.ip = ip;
+        this.mac = mac;
         this.on = on;
     }
 

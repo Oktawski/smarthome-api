@@ -21,8 +21,13 @@ public class Light extends WifiDevice {
     @JoinColumn(name = "user_id")
     private User user = null;
 
+   /*
     public Light(String name, String address){
         super(name, address);
+    }
+
+    public Light(String name, String mac, Boolean on) {
+        super(name, mac, on);
     }
 
     public Light(String name, String address, int red, int green, int blue, int intensity, Boolean on) {
@@ -33,7 +38,7 @@ public class Light extends WifiDevice {
         this.blue = blue;
         this.intensity = intensity;
     }
-
+*/
     public void setColorsAndIntensity(int r, int g, int b, int intensity) {
         this.red = r;
         this.green = g;

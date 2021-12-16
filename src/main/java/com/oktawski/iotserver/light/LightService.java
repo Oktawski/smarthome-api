@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LightService extends DeviceService<Light> implements IService<Light> {
@@ -71,7 +72,6 @@ public class LightService extends DeviceService<Light> implements IService<Light
             response.setObject(null);
             response.setMsg("Light with such MAC does not exist");
         }
-
         return response;
     }
 
@@ -81,7 +81,7 @@ public class LightService extends DeviceService<Light> implements IService<Light
         var lightOpt = lightRepository.findById(id);
 
         lightOpt.ifPresent(light -> {
-            if (light.getUser().equals(user)) {
+            if (light.getUser().getId().equals(user.getId())) {
                 light.setUser(null);
                 lightRepository.save(light);
             }
@@ -94,7 +94,7 @@ public class LightService extends DeviceService<Light> implements IService<Light
     public Optional<List<Light>> getAll() {
         var user = getUser(userRepository);
 
-        return lightRepository.findLightByUserIdOrderById(user.getId());
+        return Optional.of(lightRepository.getLightsByUserIdOrderById(user.getId()));
     }
 
     @Override

@@ -85,7 +85,7 @@ public class RelayService extends DeviceService<Relay> implements IService<Relay
     public Optional<List<Relay>> getAll() {
         var user = getUser(userRepository);
 
-        return relayRepository.findRelaysByUserIdOrderById(user.getId());
+        return Optional.of(relayRepository.getRelaysByUserIdOrderById(user.getId()));
     }
 
     @Override
