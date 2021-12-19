@@ -13,7 +13,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Example;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class LightService extends DeviceService<Light> implements IService<Light> {
@@ -115,7 +113,7 @@ public class LightService extends DeviceService<Light> implements IService<Light
             lightRepository.save(mLight);
         });
 
-        return lightRepository.findOne(Example.of(light));
+        return lightRepository.findById(id);
     }
 
     @Override
@@ -126,18 +124,18 @@ public class LightService extends DeviceService<Light> implements IService<Light
         return lightOpt.map(light -> {
             light.turn();
             lightRepository.save(light);
-            turnDevice(light);
+            //turnDevice(light);
             return light;
         });
     }
 
-    public void setColor(Long id, int red, int green, int blue, int intensity){
+    public void setColorAndIntensity(Long id, int red, int green, int blue, int intensity){
         var optionalLight = lightRepository.findById(id);
 
         optionalLight.ifPresent(light -> {
             light.setColorsAndIntensity(red, green, blue, intensity);
             lightRepository.save(light);
-            changeLightsRequest(light);
+            //changeLightsRequest(light);
         });
     }
 

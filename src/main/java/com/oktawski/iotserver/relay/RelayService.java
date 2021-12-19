@@ -106,7 +106,7 @@ public class RelayService extends DeviceService<Relay> implements IService<Relay
             relayRepository.save(relay1);
         });
 
-        return relayRepository.findOne(Example.of(relay));
+        return relayRepository.findById(id);
     }
 
     @Override

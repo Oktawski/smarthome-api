@@ -42,7 +42,7 @@ public class LightController implements IController<Light> {
         if (response.getObject() != null) {
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("{id}")
@@ -80,6 +80,13 @@ public class LightController implements IController<Light> {
 
         return lightOpt.map(mLight -> new ResponseEntity<>(mLight, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(null, HttpStatus.BAD_REQUEST));
+    }
+
+    @PostMapping("{id}/color")
+    public ResponseEntity<Void> setColorAndIntensity(@PathVariable("id") Long id,
+                                     @RequestBody Light light) {
+        service.setColorAndIntensity(id, light.getRed(), light.getGreen(), light.getBlue(), light.getIntensity());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("{id}/turn")
