@@ -135,7 +135,7 @@ public class LightService extends DeviceService<Light> implements IService<Light
         optionalLight.ifPresent(light -> {
             light.setColorsAndIntensity(red, green, blue, intensity);
             lightRepository.save(light);
-            //changeLightsRequest(light);
+            changeLightsRequest(light);
         });
     }
 
