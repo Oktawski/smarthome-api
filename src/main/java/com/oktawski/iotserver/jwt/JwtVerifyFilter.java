@@ -45,7 +45,8 @@ public class JwtVerifyFilter extends OncePerRequestFilter {
                 //TODO export key to other class or app properties
                 Jws<Claims> claimsJws = Jwts.parserBuilder()
                         .setSigningKey(Keys.hmacShaKeyFor(secret.getBytes()))
-                        .build().parseClaimsJws(token);
+                        .build()
+                        .parseClaimsJws(token);
 
                 var body = claimsJws.getBody();
                 var username = body.getSubject();

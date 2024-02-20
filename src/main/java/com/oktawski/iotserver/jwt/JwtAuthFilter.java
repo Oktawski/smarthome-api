@@ -1,6 +1,7 @@
 package com.oktawski.iotserver.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.oktawski.iotserver.user.models.User;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
         try {
             UsernameAndPasswordAuthRequest authRequest = new ObjectMapper()
                     .readValue(request.getInputStream(), UsernameAndPasswordAuthRequest.class);
-	    
+
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     authRequest.getUsername(),
                     authRequest.getPassword()
@@ -49,8 +50,7 @@ public class JwtAuthFilter extends UsernamePasswordAuthenticationFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain chain,
-            Authentication authResult) throws IOException, ServletException {
-
+            Authentication authResult) throws IOException {
         // temp
         String username = authResult.getName();
         System.out.println("AuthFilter username: " + username);

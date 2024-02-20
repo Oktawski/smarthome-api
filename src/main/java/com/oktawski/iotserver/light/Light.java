@@ -9,11 +9,14 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+import org.hibernate.validator.constraints.Range;
+
 @Getter @Setter @NoArgsConstructor
 @Entity
 @Table(name = "lights")
 public class Light extends WifiDevice {
 
+    @Range(min=0, max=255)
     private int red, green, blue, intensity = 0;
 
     @JsonBackReference

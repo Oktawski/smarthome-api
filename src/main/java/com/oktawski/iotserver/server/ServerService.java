@@ -1,14 +1,25 @@
 package com.oktawski.iotserver.server;
 
-import org.springframework.http.ResponseEntity;
+import com.oktawski.iotserver.common.SimpleResult;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.oktawski.iotserver.common.Status;
+import com.oktawski.iotserver.identity.CurrentUserProvider;
 
 @Service
 public class ServerService {
 
-    public String getStatus(){
-        return "Server is up and running";
+    private final CurrentUserProvider currentUserProvider;
+
+    public ServerService(CurrentUserProvider currentUserProvider) {
+        this.currentUserProvider = currentUserProvider;
+    }
+
+    public SimpleResult getStatus(){
+        var currentUser = currentUserProvider.getCurrentUser();
+
+        System.out.println();
+
+        return SimpleResult.success("Server up and running\n" + "Requested by: " + currentUser.getUsername());
     }
 }

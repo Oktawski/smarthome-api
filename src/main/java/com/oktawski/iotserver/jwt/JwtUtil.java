@@ -36,8 +36,10 @@ public class JwtUtil {
     public static String createToken(Authentication authentication){
         var secret = SecurityConstants.SECRET;
 
+        var userId = ((User)authentication.getPrincipal()).getId();
+
         return Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(userId.toString())
                 .claim("authorities", authentication.getAuthorities())
                 .setIssuedAt(new Date())
                 .setExpiration(java.sql.Date.valueOf(LocalDate.now().plusWeeks(2)))

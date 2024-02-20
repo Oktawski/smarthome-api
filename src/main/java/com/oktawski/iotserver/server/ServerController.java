@@ -13,20 +13,21 @@ import java.nio.channels.NotYetConnectedException;
 @RequestMapping("server")
 public class ServerController {
 
-    private final ServerService service;
+    private final ServerService serverService;
 
     @Autowired
-    public ServerController(ServerService service) {
-        this.service = service;
+    public ServerController(ServerService serverService) {
+        this.serverService = serverService;
     }
 
     @GetMapping
     public ResponseEntity<String> getStatus() {
         try {
-            String status = service.getStatus();
-            return new ResponseEntity<>(status, HttpStatus.OK);
+            var result = serverService.getStatus();
+
+            return new ResponseEntity<>(result.getMessage(), HttpStatus.OK);
         } catch(NotYetConnectedException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.oktawski.iotserver.responses;
+package com.oktawski.iotserver.common.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter @NoArgsConstructor
+@Getter @Setter
 @Builder
-public class BasicResponse<T extends Object> {
+public class BasicResponse<T> {
 
     @JsonProperty("object")
     protected T object;
@@ -16,7 +16,7 @@ public class BasicResponse<T extends Object> {
     @JsonProperty("msg")
     protected String msg;
 
-    public BasicResponse(T t, String msg) {
+    private BasicResponse(T t, String msg) {
         this.object = t;
         this.msg = msg;
     }

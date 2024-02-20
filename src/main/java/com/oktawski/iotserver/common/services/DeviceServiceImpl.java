@@ -1,12 +1,14 @@
-package com.oktawski.iotserver.superclasses;
+package com.oktawski.iotserver.common.services;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public class DeviceService <T extends WifiDevice> {
+import com.oktawski.iotserver.superclasses.WifiDevice;
+
+public class DeviceServiceImpl<T extends WifiDevice> {
 
     private final JpaRepository<T, Long> repository;
 
-    public DeviceService(JpaRepository<T, Long> repository) {
+    public DeviceServiceImpl(JpaRepository<T, Long> repository) {
         this.repository = repository;
     }
 

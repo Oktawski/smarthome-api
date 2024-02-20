@@ -1,14 +1,19 @@
 package com.oktawski.iotserver.user;
 
-import com.oktawski.iotserver.responses.UserResponse;
+import com.oktawski.iotserver.common.SimpleResult;
+import com.oktawski.iotserver.common.Status;
 import com.oktawski.iotserver.user.models.User;
+import com.oktawski.iotserver.user.models.UserDto;
+import com.oktawski.iotserver.user.models.UserEditDto;
+import com.oktawski.iotserver.user.requests.LoginRequest;
+import com.oktawski.iotserver.user.requests.RegisterRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Controller
@@ -23,27 +28,32 @@ public class UserController {
         this.service = service;
     }
 
-    @GetMapping
-    public ResponseEntity<List<User>> getAll() {
-        return service.all();
+    @PostMapping("register")
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequest request) {
+        var result = service.register(request);
+
+        return GetResponseEntity(result);
     }
 
-    @PostMapping("signup")
-    public ResponseEntity<String> signup(@RequestBody User user) {
-        return service.signup(user);
-    }
+    @PostMapping("login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        var result = service.login(request);
 
-    @PostMapping("signin")
-    public ResponseEntity<?> signin(@RequestBody User user) {
-        return service.signin(user)
-                .map(u -> new ResponseEntity<>("Welcome " + u.getUsername(), HttpStatus.OK))
-                .orElse(new ResponseEntity<>(
-                        "User with provided credentials does not exist", HttpStatus.BAD_REQUEST
-                ));
+        return GetResponseEntity(result);
     }
 
     @PostMapping("{user_id}/update")
-    public ResponseEntity<?> update(@PathVariable("user_id") Long user_id, @RequestBody User user) {
-        return service.update(user_id, user);
+    public ResponseEntity<?> update(@PathVariable("user_id") Long userId, @RequestBody UserEditDto userEditDto) {
+        var result = service.update(userId, userEditDto);
+
+        return GetResponseEntity(result);
+    }
+
+    private ResponseEntity<?> GetResponseEntity(SimpleResult result) {
+        if (!result.isSuccess()) {
+            return new ResponseEntity<>(result.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(result.getMessage(), HttpStatus.OK);
     }
 }

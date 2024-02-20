@@ -1,6 +1,6 @@
 package com.oktawski.iotserver.superclasses;
 
-import com.oktawski.iotserver.responses.BasicResponse;
+import com.oktawski.iotserver.common.responses.BasicResponse;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;

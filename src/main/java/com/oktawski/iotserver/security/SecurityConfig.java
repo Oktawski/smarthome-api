@@ -32,26 +32,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
+                .csrf()
+                    .disable()
                 .cors()
                 .and()
                 .authorizeRequests()
-                .antMatchers("/server", "/user/**", "/relays/init/**", "/lights/init/**").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/server", "/user/**", "/relays/init/**", "/lights/init/**")
+                    .permitAll()
+                .anyRequest()
+                    .authenticated()
                 .and()
                 .addFilter(new JwtAuthFilter(authenticationManager()))
                 .addFilterAfter(new JwtVerifyFilter(), JwtAuthFilter.class)
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
-    /*@Override
-    public void configure(WebSecurity web) throws Exception {
-        //web.ignoring().antMatchers("/relays/ip/**");
-        web.ignoring().antMatchers("/relays/init/**");
-    }*/
-
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         auth.authenticationProvider(daoAuthenticationProvider());
     }
 
